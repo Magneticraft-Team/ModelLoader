@@ -1,0 +1,16 @@
+[
+    {
+        "modid": "modelloader",
+        "name": "ModelLoader",
+        "description": "",
+        "version": "${version}",
+        "mcversion": "${mcversion}",
+        "url": "",
+        "updateUrl": "",
+        "authorList": [ "cout970" ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [ ],
+        "dependencies": [ "Kotlin 1.1.0" ]
+    }
+]

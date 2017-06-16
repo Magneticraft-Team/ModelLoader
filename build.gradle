@@ -1,0 +1,62 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"; url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: "kotlin"
+
+version = modVersion
+group = modGroup
+archivesBaseName = modBaseName
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = project.forgeVersion
+    runDir = "run"
+
+    replaceIn 'src/main/kotlin/com.cout970.modelloader.ModelLoaderMod'
+    replace '@VERSION@', project.version
+
+    replaceIn 'src/main/resources/mcmod.info'
+    replace '@VERSION@', project.version
+
+    mappings = project.mcpVersion
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include "mcmod.info"
+
+        expand "version": project.version, "mcversion": project.minecraft.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "mcmod.info"
+    }
+}
+sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+}
