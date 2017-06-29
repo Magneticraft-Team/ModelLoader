@@ -20,7 +20,8 @@ class KotlinAdapter : ILanguageAdapter {
         target?.set(null, proxy)
     }
 
-    override fun getNewInstance(mod: FMLModContainer?, modClass: Class<*>?, loader: ClassLoader?, factory: Method?): Any? {
+    override fun getNewInstance(mod: FMLModContainer?, modClass: Class<*>?, loader: ClassLoader?,
+                                factory: Method?): Any? {
         return modClass?.getField("INSTANCE")?.get(null)
     }
 

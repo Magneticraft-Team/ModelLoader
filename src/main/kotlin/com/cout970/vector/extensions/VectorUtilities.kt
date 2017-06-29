@@ -86,9 +86,14 @@ infix fun IVector3.angleCos(vec: IVector3): Double {
     return cos
 }
 
-fun IVector2.interpolate(other: IVector2, point: Double) = vec2Of(xd + (other.xd - xd) * point, yd + (other.yd - yd) * point)
-fun IVector3.interpolate(other: IVector3, point: Double) = vec3Of(xd + (other.xd - xd) * point, yd + (other.yd - yd) * point, zd + (other.zd - zd) * point)
-fun IVector4.interpolate(other: IVector4, point: Double) = vec4Of(xd + (other.xd - xd) * point, yd + (other.yd - yd) * point, zd + (other.zd - zd) * point, wd + (other.wd - wd) * point)
+fun IVector2.interpolate(other: IVector2, point: Double) = vec2Of(xd + (other.xd - xd) * point,
+        yd + (other.yd - yd) * point)
+
+fun IVector3.interpolate(other: IVector3, point: Double) = vec3Of(xd + (other.xd - xd) * point,
+        yd + (other.yd - yd) * point, zd + (other.zd - zd) * point)
+
+fun IVector4.interpolate(other: IVector4, point: Double) = vec4Of(xd + (other.xd - xd) * point,
+        yd + (other.yd - yd) * point, zd + (other.zd - zd) * point, wd + (other.wd - wd) * point)
 
 infix fun IVector2.middle(other: IVector2) = interpolate(other, 0.5)
 infix fun IVector3.middle(other: IVector3) = interpolate(other, 0.5)
@@ -141,9 +146,12 @@ fun IVector3.rotate(angle: Double, axis: IVector3): IVector3 {
     val sin = Math.sin(angle)
     val cos = Math.cos(angle)
     val ncos = (1 - cos)
-    val m0 = vec3Of(cos + axis.xd * axis.xd * ncos, axis.yd * axis.xd * ncos - axis.zd * sin, axis.zd * axis.xd * ncos + axis.yd * sin)
-    val m1 = vec3Of(axis.xd * axis.yd * ncos + axis.zd * sin, cos + axis.yd * axis.yd * ncos, axis.zd * axis.yd * ncos - axis.zd * sin)
-    val m2 = vec3Of(axis.xd * axis.zd * ncos - axis.yd * sin, axis.yd * axis.zd * ncos + axis.xd * sin, cos + axis.zd * axis.zd * ncos)
+    val m0 = vec3Of(cos + axis.xd * axis.xd * ncos, axis.yd * axis.xd * ncos - axis.zd * sin,
+            axis.zd * axis.xd * ncos + axis.yd * sin)
+    val m1 = vec3Of(axis.xd * axis.yd * ncos + axis.zd * sin, cos + axis.yd * axis.yd * ncos,
+            axis.zd * axis.yd * ncos - axis.zd * sin)
+    val m2 = vec3Of(axis.xd * axis.zd * ncos - axis.yd * sin, axis.yd * axis.zd * ncos + axis.xd * sin,
+            cos + axis.zd * axis.zd * ncos)
     return vec3Of(dot(m0), dot(m1), dot(m2))
 }
 
@@ -176,11 +184,13 @@ fun IVector4.fromAxisAngToQuat(): IQuaternion {
 
 infix fun IVector2.min(other: IVector2) = vec2Of(Math.min(xd, other.xd), Math.min(yd, other.yd))
 infix fun IVector3.min(other: IVector3) = vec3Of(Math.min(xd, other.xd), Math.min(yd, other.yd), Math.min(zd, other.zd))
-infix fun IVector4.min(other: IVector4) = vec4Of(Math.min(xd, other.xd), Math.min(yd, other.yd), Math.min(zd, other.zd), Math.min(wd, other.wd))
+infix fun IVector4.min(other: IVector4) = vec4Of(Math.min(xd, other.xd), Math.min(yd, other.yd), Math.min(zd, other.zd),
+        Math.min(wd, other.wd))
 
 infix fun IVector2.max(other: IVector2) = vec2Of(Math.max(xd, other.xd), Math.max(yd, other.yd))
 infix fun IVector3.max(other: IVector3) = vec3Of(Math.max(xd, other.xd), Math.max(yd, other.yd), Math.max(zd, other.zd))
-infix fun IVector4.max(other: IVector4) = vec4Of(Math.max(xd, other.xd), Math.max(yd, other.yd), Math.max(zd, other.zd), Math.max(wd, other.wd))
+infix fun IVector4.max(other: IVector4) = vec4Of(Math.max(xd, other.xd), Math.max(yd, other.yd), Math.max(zd, other.zd),
+        Math.max(wd, other.wd))
 
 fun IVector2.project(other: IVector2) = (this dot other) / this.length()
 fun IVector3.project(other: IVector3) = (this dot other) / this.length()

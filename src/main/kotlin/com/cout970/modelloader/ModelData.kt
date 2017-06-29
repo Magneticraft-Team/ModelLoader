@@ -3,7 +3,6 @@ package com.cout970.modelloader
 import com.cout970.vector.api.IVector2
 import com.cout970.vector.api.IVector3
 import com.cout970.vector.extensions.*
-import com.google.common.base.Function
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
@@ -23,6 +22,8 @@ import net.minecraftforge.common.model.TRSRTransformation
  * Created by cout970 on 2017/01/26.
  */
 
+private typealias TextureGetter = java.util.function.Function<ResourceLocation, TextureAtlasSprite>
+
 class ModelData(
         val useAmbientOcclusion: Boolean,
         val use3dInGui: Boolean,
@@ -31,11 +32,9 @@ class ModelData(
         val quads: QuadStorage
 ) : IModel {
 
-    override fun bake(state: IModelState?, format: VertexFormat,
-                      textureGetter: Function<ResourceLocation, TextureAtlasSprite>): IBakedModel {
-
+    override fun bake(state: IModelState, format: VertexFormat, textureGetter: TextureGetter): IBakedModel {
         val quads = quads.bake(format, textureGetter, parts)
-        val particles = textureGetter.apply(particleTexture)!!
+        val particles = textureGetter.apply(particleTexture)
         return QuadProvider(this, particles, quads)
     }
 
@@ -55,12 +54,12 @@ class QuadStorage(val pos: List<IVector3>, val tex: List<IVector2>, val indices:
     class QuadIndices(val a: Int, val b: Int, val c: Int, val d: Int,
                       val at: Int, val bt: Int, val ct: Int, val dt: Int)
 
-    fun bake(format: VertexFormat, textureGetter: Function<ResourceLocation, TextureAtlasSprite>,
+    fun bake(format: VertexFormat, textureGetter: TextureGetter,
              parts: List<ModelData.Part>): List<BakedQuad> {
 
         val bakedQuads = mutableListOf<BakedQuad>()
         for (part in parts) {
-            val sprite = textureGetter.apply(part.texture)!!
+            val sprite = textureGetter.apply(part.texture)
             for (i in indices.subList(part.from, part.to)) {
                 val pos = listOf(pos[i.a], pos[i.b], pos[i.c], pos[i.d])
                 val tex = listOf(tex[i.at], tex[i.bt], tex[i.ct], tex[i.dt])

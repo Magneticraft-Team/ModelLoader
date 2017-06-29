@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap
 import net.minecraft.client.renderer.block.model.IBakedModel
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
-import net.minecraftforge.client.model.IPerspectiveAwareModel
+import net.minecraftforge.client.model.PerspectiveMapWrapper
 import net.minecraftforge.client.model.SimpleModelState
 import net.minecraftforge.common.model.TRSRTransformation
 import javax.vecmath.Vector3f
@@ -58,7 +58,7 @@ object DefaultBlockDecorator : ForgeDecorator() {
         builder.put(ItemCameraTransforms.TransformType.FIRST_PERSON_LEFT_HAND, get(0f, 0f, 0f, 0f, 225f, 0f, 0.4f))
         val state = SimpleModelState(builder.build())
 
-        return IPerspectiveAwareModel.MapWrapper(model, state)
+        return PerspectiveMapWrapper(model, state)
     }
 }
 
@@ -80,7 +80,7 @@ object DefaultItemDecorator : ForgeDecorator() {
         builder.put(ItemCameraTransforms.TransformType.FIXED, get(0f, 0f, 0f, 0f, 180f, 0f, 1f))
         val state = SimpleModelState(builder.build())
 
-        return IPerspectiveAwareModel.MapWrapper(model, state)
+        return PerspectiveMapWrapper(model, state)
     }
 }
 
@@ -99,6 +99,6 @@ object DefaultToolDecorator : ForgeDecorator() {
                 get(1.13f, 3.2f, 1.13f, 0f, 90f, -25f, 0.68f))
         val state = SimpleModelState(builder.build())
 
-        return IPerspectiveAwareModel.MapWrapper(model, state)
+        return PerspectiveMapWrapper(model, state)
     }
 }

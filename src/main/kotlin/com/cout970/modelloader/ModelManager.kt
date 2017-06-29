@@ -13,6 +13,7 @@ import net.minecraftforge.client.model.IModel
 import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.client.model.ModelLoaderRegistry
 import net.minecraftforge.common.model.TRSRTransformation
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 /**
@@ -70,7 +71,7 @@ object ModelManager {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGH)
     fun onModelBakeEvent(event: ModelBakeEvent) {
         val cache = mutableMapOf<IModel, IBakedModel>()
 

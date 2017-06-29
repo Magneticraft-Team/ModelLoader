@@ -1,9 +1,6 @@
 package com.cout970.vector.extensions
 
 import com.cout970.vector.api.IVector3
-import com.cout970.vector.api.x
-import com.cout970.vector.api.y
-import com.cout970.vector.api.z
 
 /**
  * Created by cout970 on 17/08/2016.
@@ -25,9 +22,9 @@ inline val IVector3.zf: Float get() = z.toFloat()
 
 //Double
 
-inline val IVector3.xd: Double get() = x.toDouble()
-inline val IVector3.yd: Double get() = y.toDouble()
-inline val IVector3.zd: Double get() = z.toDouble()
+inline val IVector3.xd: Double get() = x
+inline val IVector3.yd: Double get() = y
+inline val IVector3.zd: Double get() = z
 
 //@formatter:on
 

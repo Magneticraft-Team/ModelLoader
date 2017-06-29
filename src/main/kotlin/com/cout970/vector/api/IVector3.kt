@@ -14,6 +14,6 @@ import net.minecraft.util.math.Vec3d
 
 typealias IVector3 = Vec3d
 
-inline val IVector3.x: Number get() = xCoord
-inline val IVector3.y: Number get() = yCoord
-inline val IVector3.z: Number get() = zCoord
+//inline val IVector3.x: Number get() = xCoord
+//inline val IVector3.y: Number get() = yCoord
+//inline val IVector3.z: Number get() = zCoord

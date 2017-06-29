@@ -10,9 +10,11 @@ import com.cout970.vector.api.IVector4
 
 data class Vector4i(override val x: Int, override val y: Int, override val z: Int, override val w: Int) : IVector4
 
-data class Vector4f(override val x: Float, override val y: Float, override val z: Float, override val w: Float) : IVector4
+data class Vector4f(override val x: Float, override val y: Float, override val z: Float,
+                    override val w: Float) : IVector4
 
-data class Vector4d(override val x: Double, override val y: Double, override val z: Double, override val w: Double) : IVector4
+data class Vector4d(override val x: Double, override val y: Double, override val z: Double,
+                    override val w: Double) : IVector4
 
 //@formatter:off
 data class MutableVector4i(
