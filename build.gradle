@@ -25,13 +25,7 @@ compileJava {
 minecraft {
     version = project.forgeVersion
     runDir = "run"
-
-    replaceIn 'src/main/kotlin/com.cout970.modelloader.ModelLoaderMod'
-    replace '@VERSION@', project.version
-
-    replaceIn 'src/main/resources/mcmod.info'
-    replace '@VERSION@', project.version
-
+    replace "@VERSION@":  project.version
     mappings = project.mcpVersion
 }
 

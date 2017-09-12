@@ -3,7 +3,7 @@
         "modid": "modelloader",
         "name": "ModelLoader",
         "description": "",
-        "version": "${version}",
+        "version": "1.0.5",
         "mcversion": "${mcversion}",
         "url": "",
         "updateUrl": "",
