@@ -1,19 +1,22 @@
 package com.cout970.modelloader
 
 import com.cout970.modelloader.proxy.IProxy
+import net.minecraftforge.common.config.Configuration
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.SidedProxy
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import org.apache.logging.log4j.Logger
 
-@Mod(modid = ModelLoaderMod.MOD_ID, name = ModelLoaderMod.MOD_NAME, version = "1.0.5",
+@Mod(modid = ModelLoaderMod.MOD_ID, name = ModelLoaderMod.MOD_NAME, version = "1.1.0",
         modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter", modLanguage = "kotlin")
 object ModelLoaderMod {
 
     internal const val MOD_ID = "modelloader"
     internal const val MOD_NAME = "ModelLoader"
     lateinit var logger: Logger
+
+    internal var useMultiThreading = false
 
     @SidedProxy(
             clientSide = "com.cout970.modelloader.proxy.Client",
@@ -24,6 +27,10 @@ object ModelLoaderMod {
     @EventHandler
     fun preInit(event: FMLPreInitializationEvent) {
         this.logger = event.modLog
+
+        val config = Configuration(event.suggestedConfigurationFile)
+        this.useMultiThreading = config["global", "use_multi_threading", true].boolean
+
         logger.info("${ModelLoaderMod.MOD_ID} preInit start")
         proxy?.init()
         logger.info("${ModelLoaderMod.MOD_ID} preInit end")

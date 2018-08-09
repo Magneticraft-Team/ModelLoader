@@ -1,7 +1,7 @@
 package com.cout970.modelloader.api
 
-import com.cout970.modelloader.ModelData
-import com.cout970.modelloader.QuadStorage
+import com.cout970.modelloader.internal.mcx.McxModel
+import com.cout970.modelloader.internal.mcx.Mesh
 import com.cout970.vector.extensions.*
 import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.Tessellator
@@ -29,7 +29,7 @@ object ModelUtilties {
      *  Note: as any cache, makes no sense create it every time you need to use it,
      *        store it and call the render method any time you want to render the model
      */
-    fun renderModel(model: ModelData) {
+    fun renderModel(model: McxModel) {
         val tessellator = Tessellator.getInstance()
         val buffer = tessellator.buffer
         val storage = model.quads
@@ -47,7 +47,7 @@ object ModelUtilties {
     /**
      * Same as renderModel but selection the parts you want to render
      */
-    fun renderModelParts(model: ModelData, parts: List<ModelData.Part>) {
+    fun renderModelParts(model: McxModel, parts: List<McxModel.Part>) {
         val tessellator = Tessellator.getInstance()
         val buffer = tessellator.buffer
         val storage = model.quads
@@ -65,7 +65,7 @@ object ModelUtilties {
     /**
      * Helper function that inserts all the quads inside the part into the BufferBuilder
      */
-    fun putPartInBuffer(part: ModelData.Part, storage: QuadStorage, buffer: BufferBuilder) {
+    fun putPartInBuffer(part: McxModel.Part, storage: Mesh, buffer: BufferBuilder) {
         val indices = storage.indices.subList(part.from, part.to)
         indices.forEach { index ->
             val pos0 = storage.pos[index.a]
@@ -85,14 +85,17 @@ object ModelUtilties {
                         .tex(tex0.xd, tex0.yd)
                         .normal(normal.xf, normal.yf, normal.zf)
                         .endVertex()
+
                 pos(pos1.xd, pos1.yd, pos1.zd)
                         .tex(tex1.xd, tex1.yd)
                         .normal(normal.xf, normal.yf, normal.zf)
                         .endVertex()
+
                 pos(pos2.xd, pos2.yd, pos2.zd)
                         .tex(tex2.xd, tex2.yd)
                         .normal(normal.xf, normal.yf, normal.zf)
                         .endVertex()
+
                 pos(pos3.xd, pos3.yd, pos3.zd)
                         .tex(tex3.xd, tex3.yd)
                         .normal(normal.xf, normal.yf, normal.zf)

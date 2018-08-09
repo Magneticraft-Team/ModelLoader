@@ -8,11 +8,25 @@ import java.io.Closeable
  * Created by cout970 on 2017/06/17.
  */
 
+/**
+ * Wraps a render process to avoid unnecessary calculations and gpu access overhead
+ */
 interface IRenderCache : Closeable {
+
+    /**
+     * Performs the render process, or use the cache if available
+     */
     fun render()
+
+    /**
+     * Clear cache and associated resources
+     */
     override fun close()
 }
 
+/**
+ * RenderCache implementation that uses DisplayLists to reduce GPU access overhead
+ */
 class RenderCacheDisplayList(val renderFunc: () -> Unit) : IRenderCache {
     private var id: Int = -1
 

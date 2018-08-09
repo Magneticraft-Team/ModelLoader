@@ -1,4 +1,4 @@
-package com.cout970.modelloader
+package com.cout970.modelloader.internal.mcx
 
 import com.cout970.vector.api.IVector2
 import com.cout970.vector.api.IVector3
@@ -18,24 +18,20 @@ import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad
 import net.minecraftforge.common.model.IModelState
 import net.minecraftforge.common.model.TRSRTransformation
 
-/**
- * Created by cout970 on 2017/01/26.
- */
-
 private typealias TextureGetter = java.util.function.Function<ResourceLocation, TextureAtlasSprite>
 
-class ModelData(
+class McxModel(
         val useAmbientOcclusion: Boolean,
         val use3dInGui: Boolean,
         val particleTexture: ResourceLocation,
         val parts: List<Part>,
-        val quads: QuadStorage
+        val quads: Mesh
 ) : IModel {
 
     override fun bake(state: IModelState, format: VertexFormat, textureGetter: TextureGetter): IBakedModel {
         val quads = quads.bake(format, textureGetter, parts)
         val particles = textureGetter.apply(particleTexture)
-        return QuadProvider(this, particles, quads)
+        return BakedMcxModel(this, particles, quads)
     }
 
     override fun getTextures(): MutableCollection<ResourceLocation> {
@@ -49,17 +45,20 @@ class ModelData(
     class Part(val name: String, val from: Int, val to: Int, val side: EnumFacing?, val texture: ResourceLocation)
 }
 
-class QuadStorage(val pos: List<IVector3>, val tex: List<IVector2>, val indices: List<QuadIndices>) {
 
-    class QuadIndices(val a: Int, val b: Int, val c: Int, val d: Int,
-                      val at: Int, val bt: Int, val ct: Int, val dt: Int)
+class Mesh(val pos: List<IVector3>, val tex: List<IVector2>, val indices: List<Indices>) {
+
+    class Indices(val a: Int, val b: Int, val c: Int, val d: Int,
+                  val at: Int, val bt: Int, val ct: Int, val dt: Int)
 
     fun bake(format: VertexFormat, textureGetter: TextureGetter,
-             parts: List<ModelData.Part>): List<BakedQuad> {
+             parts: List<McxModel.Part>): List<BakedQuad> {
 
         val bakedQuads = mutableListOf<BakedQuad>()
+
         for (part in parts) {
             val sprite = textureGetter.apply(part.texture)
+
             for (i in indices.subList(part.from, part.to)) {
                 val pos = listOf(pos[i.a], pos[i.b], pos[i.c], pos[i.d])
                 val tex = listOf(tex[i.at], tex[i.bt], tex[i.ct], tex[i.dt])
@@ -87,29 +86,32 @@ class QuadStorage(val pos: List<IVector3>, val tex: List<IVector2>, val indices:
     private fun putVertex(builder: UnpackedBakedQuad.Builder, format: VertexFormat, side: IVector3,
                           pos: IVector3, tex: IVector2, sprite: TextureAtlasSprite) {
 
-        for (e in 0..format.elementCount - 1) {
+        for (e in 0 until format.elementCount) {
             when (format.getElement(e).usage) {
                 VertexFormatElement.EnumUsage.POSITION -> builder.put(e, pos.xf, pos.yf, pos.zf, 1f)
                 VertexFormatElement.EnumUsage.COLOR -> builder.put(e, 1f, 1f, 1f, 1f)
+                VertexFormatElement.EnumUsage.NORMAL -> builder.put(e, side.xf, side.yf, side.zf, 0f)
+
                 VertexFormatElement.EnumUsage.UV -> {
                     if (format.getElement(e).index == 0) {
-                        builder.put(e, sprite.getInterpolatedU(tex.xd * 16.0), sprite.getInterpolatedV(tex.yd * 16.0),
+                        builder.put(e,
+                                sprite.getInterpolatedU(tex.xd * 16.0),
+                                sprite.getInterpolatedV(tex.yd * 16.0),
                                 0f, 1f)
                     }
                 }
-                VertexFormatElement.EnumUsage.NORMAL -> builder.put(e, side.xf, side.yf, side.zf, 0f)
                 else -> builder.put(e)
             }
         }
     }
 }
 
-class QuadProvider(val modelData: ModelData, val particles: TextureAtlasSprite, quads: List<BakedQuad>) : IBakedModel {
+class BakedMcxModel(val modelData: McxModel, val particles: TextureAtlasSprite, quads: List<BakedQuad>) : IBakedModel {
 
     val bakedQuads: Map<EnumFacing?, MutableList<BakedQuad>> = modelData.parts
             .groupBy { it.side }
-            .mapValues {
-                it.value.flatMap { quads.subList(it.from, it.to) }.toMutableList()
+            .mapValues { entry ->
+                entry.value.flatMap { quads.subList(it.from, it.to) }.toMutableList()
             }
 
     override fun getParticleTexture(): TextureAtlasSprite = particles

@@ -1,7 +1,7 @@
 package com.cout970.modelloader.proxy
 
 import com.cout970.modelloader.ModelLoaderMod
-import com.cout970.modelloader.ModelManager
+import com.cout970.modelloader.internal.ModelManager
 import net.minecraftforge.common.MinecraftForge
 
 /**
