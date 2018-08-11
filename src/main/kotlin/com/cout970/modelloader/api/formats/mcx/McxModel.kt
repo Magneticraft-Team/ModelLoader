@@ -1,8 +1,7 @@
-package com.cout970.modelloader.internal.mcx
+package com.cout970.modelloader.api.formats.mcx
 
 import com.cout970.vector.api.IVector2
 import com.cout970.vector.api.IVector3
-import com.cout970.vector.extensions.*
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
@@ -10,11 +9,9 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.block.model.ItemOverrideList
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.VertexFormat
-import net.minecraft.client.renderer.vertex.VertexFormatElement
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.model.IModel
-import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad
 import net.minecraftforge.common.model.IModelState
 import net.minecraftforge.common.model.TRSRTransformation
 
@@ -29,9 +26,7 @@ class McxModel(
 ) : IModel {
 
     override fun bake(state: IModelState, format: VertexFormat, textureGetter: TextureGetter): IBakedModel {
-        val quads = quads.bake(format, textureGetter, parts)
-        val particles = textureGetter.apply(particleTexture)
-        return BakedMcxModel(this, particles, quads)
+        return McxBaker(format, textureGetter).bake(this)
     }
 
     override fun getTextures(): MutableCollection<ResourceLocation> {
@@ -45,65 +40,11 @@ class McxModel(
     class Part(val name: String, val from: Int, val to: Int, val side: EnumFacing?, val texture: ResourceLocation)
 }
 
-
 class Mesh(val pos: List<IVector3>, val tex: List<IVector2>, val indices: List<Indices>) {
 
     class Indices(val a: Int, val b: Int, val c: Int, val d: Int,
                   val at: Int, val bt: Int, val ct: Int, val dt: Int)
 
-    fun bake(format: VertexFormat, textureGetter: TextureGetter,
-             parts: List<McxModel.Part>): List<BakedQuad> {
-
-        val bakedQuads = mutableListOf<BakedQuad>()
-
-        for (part in parts) {
-            val sprite = textureGetter.apply(part.texture)
-
-            for (i in indices.subList(part.from, part.to)) {
-                val pos = listOf(pos[i.a], pos[i.b], pos[i.c], pos[i.d])
-                val tex = listOf(tex[i.at], tex[i.bt], tex[i.ct], tex[i.dt])
-                val normal = getNormal(pos)
-
-                val builder = UnpackedBakedQuad.Builder(format)
-                builder.setQuadOrientation(EnumFacing.getFacingFromVector(normal.xf, normal.yf, normal.zf))
-                builder.setContractUVs(true)
-                builder.setTexture(sprite)
-                for (index in 0..3) {
-                    putVertex(builder, format, normal, pos[index], tex[index], sprite)
-                }
-                bakedQuads.add(builder.build())
-            }
-        }
-        return bakedQuads
-    }
-
-    private fun getNormal(vertex: List<IVector3>): IVector3 {
-        val ac = vertex[2] - vertex[0]
-        val bd = vertex[3] - vertex[1]
-        return (ac cross bd).normalize()
-    }
-
-    private fun putVertex(builder: UnpackedBakedQuad.Builder, format: VertexFormat, side: IVector3,
-                          pos: IVector3, tex: IVector2, sprite: TextureAtlasSprite) {
-
-        for (e in 0 until format.elementCount) {
-            when (format.getElement(e).usage) {
-                VertexFormatElement.EnumUsage.POSITION -> builder.put(e, pos.xf, pos.yf, pos.zf, 1f)
-                VertexFormatElement.EnumUsage.COLOR -> builder.put(e, 1f, 1f, 1f, 1f)
-                VertexFormatElement.EnumUsage.NORMAL -> builder.put(e, side.xf, side.yf, side.zf, 0f)
-
-                VertexFormatElement.EnumUsage.UV -> {
-                    if (format.getElement(e).index == 0) {
-                        builder.put(e,
-                                sprite.getInterpolatedU(tex.xd * 16.0),
-                                sprite.getInterpolatedV(tex.yd * 16.0),
-                                0f, 1f)
-                    }
-                }
-                else -> builder.put(e)
-            }
-        }
-    }
 }
 
 class BakedMcxModel(val modelData: McxModel, val particles: TextureAtlasSprite, quads: List<BakedQuad>) : IBakedModel {

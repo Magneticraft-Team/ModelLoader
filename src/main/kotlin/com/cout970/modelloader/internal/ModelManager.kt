@@ -4,8 +4,8 @@ import com.cout970.modelloader.ModelLoaderMod
 import com.cout970.modelloader.api.IBakedModelDecorator
 import com.cout970.modelloader.api.Model
 import com.cout970.modelloader.api.ModelEntry
-import com.cout970.modelloader.internal.mcx.McxModel
-import com.cout970.modelloader.internal.mcx.McxModelSerializer
+import com.cout970.modelloader.api.formats.gltf.GltfModel
+import com.cout970.modelloader.api.formats.mcx.McxModel
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.IBakedModel
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
@@ -18,6 +18,7 @@ import net.minecraftforge.client.model.IModel
 import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.client.model.ModelLoaderRegistry
 import net.minecraftforge.client.model.obj.OBJLoader
+import net.minecraftforge.client.model.obj.OBJModel
 import net.minecraftforge.common.model.TRSRTransformation
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -133,7 +134,7 @@ object ModelManager {
 
             return when (extension) {
                 "obj" -> OBJLoader.INSTANCE.loadModel(location)
-                "gltf" -> TODO()
+                "gltf" -> GltfModelSerializer.load(manager, location, resource)
                 else -> McxModelSerializer.load(resource)
             }
         } catch (e: Exception) {
@@ -145,7 +146,9 @@ object ModelManager {
 
     private fun IModel.wrap(): Model = when (this) {
         is McxModel -> Model.Mcx(this)
-        else -> error("Invalid model type: ${this::class.java.canonicalName}, $this")
+        is GltfModel -> Model.Gltf(this)
+        is OBJModel -> Model.Obj(this)
+        else -> Model.Missing
     }
 
     private fun bake(model: IModel): IBakedModel {

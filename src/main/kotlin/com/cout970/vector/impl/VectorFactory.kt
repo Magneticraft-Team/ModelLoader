@@ -2,6 +2,7 @@ package com.cout970.vector.impl
 
 import com.cout970.vector.api.*
 import net.minecraft.util.math.Vec3d
+import javax.vecmath.Quat4f
 
 /**
  * Created by cout970 on 18/08/2016.
@@ -25,8 +26,8 @@ object VectorFactory : IVectorFactory {
     override fun mutableVec4Of(x: Number, y: Number, z: Number, w: Number): IMutableVector4 = MutableVector4d(
             x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
 
-    override fun quatOf(x: Number, y: Number, z: Number, w: Number): IQuaternion = Quaterniond(x.toDouble(),
-            y.toDouble(), z.toDouble(), w.toDouble())
+    override fun quatOf(x: Number, y: Number, z: Number, w: Number): IQuaternion = Quat4f(x.toFloat(),
+            y.toFloat(), z.toFloat(), w.toFloat())
 
     override fun mutableQuatOf(x: Number, y: Number, z: Number, w: Number): IMutableQuaternion = MutableQuaterniond(
             x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())

@@ -1,7 +1,7 @@
 package com.cout970.modelloader.api
 
-import com.cout970.modelloader.internal.mcx.McxModel
-import com.cout970.modelloader.internal.mcx.Mesh
+import com.cout970.modelloader.api.formats.mcx.McxModel
+import com.cout970.modelloader.api.formats.mcx.Mesh
 import com.cout970.vector.extensions.*
 import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.Tessellator

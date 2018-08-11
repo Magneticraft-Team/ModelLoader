@@ -1,32 +1,31 @@
 package com.cout970.vector.impl
 
 import com.cout970.vector.api.IMutableQuaternion
-import com.cout970.vector.api.IQuaternion
 
 /**
  * Created by cout970 on 03/09/2016.
  */
 
-data class Quaternioni(
-        override val x: Int,
-        override val y: Int,
-        override val z: Int,
-        override val w: Int
-) : IQuaternion
-
-data class Quaternionf(
-        override val x: Float,
-        override val y: Float,
-        override val z: Float,
-        override val w: Float
-) : IQuaternion
-
-data class Quaterniond(
-        override val x: Double,
-        override val y: Double,
-        override val z: Double,
-        override val w: Double
-) : IQuaternion
+//data class Quaternioni(
+//        override val x: Int,
+//        override val y: Int,
+//        override val z: Int,
+//        override val w: Int
+//) : IQuaternion
+//
+//data class Quaternionf(
+//        override val x: Float,
+//        override val y: Float,
+//        override val z: Float,
+//        override val w: Float
+//) : IQuaternion
+//
+//data class Quaterniond(
+//        override val x: Double,
+//        override val y: Double,
+//        override val z: Double,
+//        override val w: Double
+//) : IQuaternion
 
 //mutable
 

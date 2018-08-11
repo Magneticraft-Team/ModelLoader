@@ -158,18 +158,18 @@ fun IVector3.rotate(angle: Double, axis: IVector3): IVector3 {
 fun IVector3.rotate(quat: IQuaternion): IVector3 = quat.rotate(this)
 
 fun IQuaternion.rotate(vec: IVector3): IVector3 {
-    val x2 = xd + xd
-    val y2 = yd + yd
-    val z2 = zd + zd
-    val x2sq = xd * x2
-    val y2sq = yd * y2
-    val z2sq = zd * z2
-    val xy2 = xd * y2
-    val xz2 = xd * z2
-    val yz2 = yd * z2
-    val wx2 = wd * x2
-    val wy2 = wd * y2
-    val wz2 = wd * z2
+    val x2 = x + x
+    val y2 = y + y
+    val z2 = z + z
+    val x2sq = x * x2
+    val y2sq = y * y2
+    val z2sq = z * z2
+    val xy2 = x * y2
+    val xz2 = x * z2
+    val yz2 = y * z2
+    val wx2 = w * x2
+    val wy2 = w * y2
+    val wz2 = w * z2
     return vec3Of(
             (1.0 - (y2sq + z2sq)) * vec.xd + (xy2 - wz2) * vec.yd + (xz2 + wy2) * vec.zd,
             (xy2 + wz2) * vec.xd + (1.0 - (x2sq + z2sq)) * vec.yd + (yz2 - wx2) * vec.zd,
