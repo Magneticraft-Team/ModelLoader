@@ -43,7 +43,7 @@ fun IVector3.round() = transform { Math.round(it).toDouble() }
 fun IVector4.round() = transform { Math.round(it).toDouble() }
 
 fun IVector2.normalize() = this / length()
-fun IVector3.normalize() = this / length()
+//fun IVector3.normalize() = this / length()
 fun IVector4.normalize() = this / length()
 
 operator fun IVector2.unaryMinus() = vec2Of(-xd, -yd)
