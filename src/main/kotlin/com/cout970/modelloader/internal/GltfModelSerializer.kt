@@ -33,7 +33,7 @@ private val GSON = GsonBuilder()
         .create()
 
 
-object GltfModelSerializer {
+internal object GltfModelSerializer {
 
     private val MISSING_TEXTURE = ResourceLocation("minecraft", "missingno")
 

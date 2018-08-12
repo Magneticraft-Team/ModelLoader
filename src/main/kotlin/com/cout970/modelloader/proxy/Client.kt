@@ -7,9 +7,10 @@ import net.minecraftforge.common.MinecraftForge
 /**
  * Created by cout970 on 2017/09/12.
  */
-class Client : IProxy {
+internal class Client : Server() {
 
     override fun init() {
+        super.init()
         ModelLoaderMod.logger.info("${ModelLoaderMod.MOD_ID} starting client init")
         MinecraftForge.EVENT_BUS.register(ModelManager)
     }

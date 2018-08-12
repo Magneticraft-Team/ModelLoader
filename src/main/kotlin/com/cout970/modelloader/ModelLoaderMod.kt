@@ -8,8 +8,13 @@ import net.minecraftforge.fml.common.SidedProxy
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import org.apache.logging.log4j.Logger
 
-@Mod(modid = ModelLoaderMod.MOD_ID, name = ModelLoaderMod.MOD_NAME, version = "1.1.0",
-        modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter", modLanguage = "kotlin")
+@Mod(
+        modid = ModelLoaderMod.MOD_ID,
+        name = ModelLoaderMod.MOD_NAME,
+        version = "1.1.0",
+        modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter",
+        modLanguage = "kotlin"
+)
 object ModelLoaderMod {
 
     internal const val MOD_ID = "modelloader"
@@ -22,7 +27,7 @@ object ModelLoaderMod {
             clientSide = "com.cout970.modelloader.proxy.Client",
             serverSide = "com.cout970.modelloader.proxy.Server"
     )
-    var proxy: IProxy? = null
+    internal var proxy: IProxy? = null
 
     @EventHandler
     fun preInit(event: FMLPreInitializationEvent) {

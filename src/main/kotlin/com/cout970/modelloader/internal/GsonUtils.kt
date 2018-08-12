@@ -15,35 +15,35 @@ import com.google.gson.JsonElement
 import java.lang.reflect.Type
 import javax.vecmath.Matrix4f
 
-class QuaternionDeserializer : JsonDeserializer<IQuaternion> {
+internal class QuaternionDeserializer : JsonDeserializer<IQuaternion> {
     override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): IQuaternion {
         val arr = json.asJsonArray
         return quatOf(arr[0].asNumber, arr[1].asNumber, arr[2].asNumber, arr[3].asNumber)
     }
 }
 
-class Vector4Deserializer : JsonDeserializer<IVector4> {
+internal class Vector4Deserializer : JsonDeserializer<IVector4> {
     override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): IVector4 {
         val arr = json.asJsonArray
         return vec4Of(arr[0].asNumber, arr[1].asNumber, arr[2].asNumber, arr[3].asNumber)
     }
 }
 
-class Vector3Deserializer : JsonDeserializer<IVector3> {
+internal class Vector3Deserializer : JsonDeserializer<IVector3> {
     override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): IVector3 {
         val arr = json.asJsonArray
         return vec3Of(arr[0].asNumber, arr[1].asNumber, arr[2].asNumber)
     }
 }
 
-class Vector2Deserializer : JsonDeserializer<IVector2> {
+internal class Vector2Deserializer : JsonDeserializer<IVector2> {
     override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): IVector2 {
         val arr = json.asJsonArray
         return vec2Of(arr[0].asNumber, arr[1].asNumber)
     }
 }
 
-class Matrix4Deserializer : JsonDeserializer<IMatrix4> {
+internal class Matrix4Deserializer : JsonDeserializer<IMatrix4> {
 
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): IMatrix4 {
         val array = json.asJsonArray

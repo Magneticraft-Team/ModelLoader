@@ -12,7 +12,7 @@ import java.lang.reflect.Method
  * mod class is an object (Singleton)
  */
 @Suppress("unused")
-class KotlinAdapter : ILanguageAdapter {
+internal class KotlinAdapter : ILanguageAdapter {
 
     override fun supportsStatics() = false
 

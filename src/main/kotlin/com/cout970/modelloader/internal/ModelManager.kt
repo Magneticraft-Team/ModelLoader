@@ -27,7 +27,7 @@ import kotlin.streams.toList
 /**
  * Created by cout970 on 2017/03/05.
  */
-object ModelManager {
+internal object ModelManager {
 
     data class ModelRegistration(
             val modelId: ModelResourceLocation,
@@ -127,7 +127,7 @@ object ModelManager {
         }
     }
 
-    private fun loadModel(manager: IResourceManager, location: ResourceLocation): IModel {
+    internal fun loadModel(manager: IResourceManager, location: ResourceLocation): IModel {
         try {
             val resource = manager.getResource(location).inputStream
             val extension = location.resourcePath.substringAfterLast('.', "")

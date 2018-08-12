@@ -1,11 +1,16 @@
 package com.cout970.modelloader.api
 
+import com.cout970.modelloader.api.formats.gltf.GltfAnimationBuilder
+import com.cout970.modelloader.api.formats.gltf.GltfModel
 import com.cout970.modelloader.api.formats.mcx.McxModel
 import com.cout970.modelloader.api.formats.mcx.Mesh
 import com.cout970.vector.extensions.*
+import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.block.model.IBakedModel
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 /**
@@ -18,7 +23,7 @@ object ModelUtilities {
      * so this is not suitable for continuous render, for example in a TileEntitySpecialRenderer,
      * this should be cached with a IRenderCache or other method
      *
-     * example of correct use:
+     * Example of correct use:
      * kotlin:
      *  val cache = RenderCacheDisplayList { renderModel(model) }
      *  cache.render()
@@ -45,7 +50,36 @@ object ModelUtilities {
     }
 
     /**
-     * Same as renderModel but selection the parts you want to render
+     * Same as [renderModel] but with IBakedModel
+     *
+     * Make sure to use a cache like RenderCacheDisplayList to avoid performance problems
+     */
+    fun renderModel(model: IBakedModel, state: IBlockState? = null, side: EnumFacing? = null, rand: Long = 0) {
+        val tessellator = Tessellator.getInstance()
+        val buffer = tessellator.buffer
+
+        buffer.apply {
+            begin(GL11.GL_QUADS, DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL)
+            setTranslation(0.0, 0.0, 0.0)
+            model.getQuads(state, side, rand).forEach { part ->
+                addVertexData(part.vertexData)
+            }
+            tessellator.draw()
+        }
+    }
+
+    /**
+     * Same as [renderModel] but with IBakedModel
+     *
+     * Make sure to use a cache like RenderCacheDisplayList to avoid performance problems
+     */
+    fun renderModel(model: GltfModel) {
+        GltfAnimationBuilder().buildPlain(model).render(0.0)
+    }
+
+
+    /**
+     * Same as [renderModel] but selection the parts you want to render
      */
     fun renderModelParts(model: McxModel, parts: List<McxModel.Part>) {
         val tessellator = Tessellator.getInstance()

@@ -3,7 +3,6 @@ package com.cout970.modelloader.api.formats.gltf
 import com.cout970.modelloader.ModelLoaderMod
 import com.cout970.modelloader.api.RenderCacheDisplayList
 import com.cout970.modelloader.api.animation.AnimatedModel
-import com.cout970.modelloader.api.animation.IAnimatedModel
 import com.cout970.modelloader.api.util.TRSTransformation
 import com.cout970.vector.api.IVector2
 import com.cout970.vector.api.IVector3
@@ -30,7 +29,10 @@ class GltfAnimationBuilder {
      */
     var useTextureAtlas = false
 
-    fun build(model: GltfModel): List<Pair<String, IAnimatedModel>> {
+    /**
+     * Convert all the animations on the model to AnimatedModel
+     */
+    fun build(model: GltfModel): List<Pair<String, AnimatedModel>> {
 
         val scene = model.structure.scenes[model.definition.scene ?: 0]
         val nodes = scene.nodes.map { node ->
@@ -45,6 +47,19 @@ class GltfAnimationBuilder {
 
             name to AnimatedModel(animationModes, channels)
         }
+    }
+
+    /**
+     * Create and empty animation that renders the model without moving parts
+     */
+    fun buildPlain(model: GltfModel): AnimatedModel {
+
+        val scene = model.structure.scenes[model.definition.scene ?: 0]
+        val nodes = scene.nodes.map { node ->
+            processNode(node)
+        }
+
+        return AnimatedModel(nodes.map { compactNode(it, emptySet()) }.map { bakeNode(it) }, emptyList())
     }
 
     private fun modelChannel(gltfChannels: List<GltfStructure.Channel>): List<AnimatedModel.Channel> {

@@ -22,7 +22,7 @@ private val GSON = GsonBuilder()
         .registerTypeAdapter(ResourceLocation::class.java, McxModelSerializer.ResourceLocationDeserializer())
         .create()!!
 
-object McxModelSerializer {
+internal object McxModelSerializer {
 
     fun load(stream: InputStream): McxModel {
         return GSON.fromJson(stream.reader(), McxModel::class.java)
