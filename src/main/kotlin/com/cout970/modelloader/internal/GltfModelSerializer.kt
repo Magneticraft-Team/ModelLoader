@@ -176,7 +176,7 @@ object GltfModelSerializer {
     private fun parseAnimations(file: GltfFile, accessors: List<Buffer>): List<Animation> {
         return file.animations.filter { it.channels != null }.map { animation ->
             val channels = animation.channels.map { parseChannel(it, animation.samplers, accessors) }
-            Animation(channels)
+            Animation(animation.name, channels)
         }
     }
 

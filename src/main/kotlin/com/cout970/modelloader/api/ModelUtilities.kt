@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL11
 /**
  * Created by cout970 on 2017/06/17.
  */
-object ModelUtilties {
+object ModelUtilities {
 
     /**
      * Renders the model data, this renders the model *directly*,
@@ -36,10 +36,10 @@ object ModelUtilties {
 
         buffer.apply {
             begin(GL11.GL_QUADS, DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL)
+            setTranslation(0.0, 0.0, 0.0)
             model.parts.forEach { part ->
                 putPartInBuffer(part, storage, buffer)
             }
-            setTranslation(0.0, 0.0, 0.0)
             tessellator.draw()
         }
     }
@@ -54,10 +54,10 @@ object ModelUtilties {
 
         buffer.apply {
             begin(GL11.GL_QUADS, DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL)
+            setTranslation(0.0, 0.0, 0.0)
             parts.forEach { part ->
                 putPartInBuffer(part, storage, buffer)
             }
-            setTranslation(0.0, 0.0, 0.0)
             tessellator.draw()
         }
     }

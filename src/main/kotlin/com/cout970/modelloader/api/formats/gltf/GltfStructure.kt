@@ -39,6 +39,7 @@ object GltfStructure {
     )
 
     class Animation(
+            val name: String?,
             val channels: List<Channel>
     )
 

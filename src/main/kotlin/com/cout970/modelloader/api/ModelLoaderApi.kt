@@ -20,7 +20,7 @@ object ModelLoaderApi {
      * If the `bake` parameter is set to false the model will be loaded and accessible for TESR,
      * but it will not be baked and the textures will not use space in the textureAtlas
      *
-     * @param modelId model unique identifier used to get the model with [getModel]
+     * @param modelId model unique identifier used to get the model with [getModelEntry]
      *                and to inject it into the game model registry
      *
      * @param modelLocation path to the model file, mod:path is translated to assets/{mod}/{path}
@@ -54,7 +54,7 @@ object ModelLoaderApi {
      *         this model is not decorated by any [IBakedModelDecorator]
      */
     @SideOnly(Side.CLIENT)
-    fun getModel(modelId: ModelResourceLocation): ModelEntry? {
+    fun getModelEntry(modelId: ModelResourceLocation): ModelEntry? {
         return ModelManager.loadedModels[modelId]
     }
 }

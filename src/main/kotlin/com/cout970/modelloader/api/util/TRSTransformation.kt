@@ -56,8 +56,6 @@ data class TRSTransformation(
         m20 *= this@TRSTransformation.scale.zf
         m21 *= this@TRSTransformation.scale.zf
         m22 *= this@TRSTransformation.scale.zf
-
-        transpose()
     }
 
     operator fun plus(other: TRSTransformation): TRSTransformation {

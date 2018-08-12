@@ -78,7 +78,7 @@ class GltfBaker(val format: VertexFormat, val bakedTextureGetter: Function<Resou
             val pos = posBuffer.data as List<IVector3>
             val tex = texBuffer?.data as? List<IVector2> ?: emptyList()
 
-            val matrix = globalTransform.matrix
+            val matrix = globalTransform.matrix.apply { transpose() }
             val newPos = pos.map { vec ->
                 Point3f(vec.xf, vec.yf, vec.zf)
                         .apply { matrix.transform(this) }
