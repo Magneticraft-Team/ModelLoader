@@ -77,7 +77,6 @@ object ModelUtilities {
         GltfAnimationBuilder().buildPlain(model).render(0.0)
     }
 
-
     /**
      * Same as [renderModel] but selection the parts you want to render
      */

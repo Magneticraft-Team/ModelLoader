@@ -47,45 +47,52 @@ internal object ModelManager {
     @SubscribeEvent
     fun onTextureStart(event: TextureStitchEvent.Pre) {
         // loads all models to get the textures needed
-        loadAll()
-        //register every texture once
-        texturesToRegister.forEach {
-            event.map.registerSprite(it)
+        logTime("Loading models (multithread: ${ModelLoaderMod.useMultiThreading})") {
+            loadAll()
         }
-        texturesToRegister.clear()
+
+        //register every texture once
+        logTime("Registering textures") {
+            texturesToRegister.forEach {
+                event.map.registerSprite(it)
+            }
+            texturesToRegister.clear()
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     fun onModelBakeEvent(event: ModelBakeEvent) {
-        // Bake all models
-        val bakedModels = if (ModelLoaderMod.useMultiThreading) {
-            modelsToBake
-                    .toList()
-                    .parallelStream()
-                    .map { (id, model) -> id to bake(model) }
-                    .toList()
-        } else {
-            modelsToBake
-                    .map { (id, model) -> id to bake(model) }
-        }
+        logTime("Baking models (multithread: ${ModelLoaderMod.useMultiThreading})") {
+            // Bake all models
+            val bakedModels = if (ModelLoaderMod.useMultiThreading) {
+                modelsToBake
+                        .toList()
+                        .parallelStream()
+                        .map { (id, model) -> id to bake(model) }
+                        .toList()
+            } else {
+                modelsToBake
+                        .map { (id, model) -> id to bake(model) }
+            }
 
-        // Fill missing loadedModels entries
-        val idToModel = modelsToBake.map { it.first.modelId to it.second }.toMap()
+            // Fill missing loadedModels entries
+            val idToModel = modelsToBake.map { it.first.modelId to it.second }.toMap()
 
-        bakedModels.forEach { (reg, baked) ->
-            loadedModels[reg.modelId] = ModelEntry(baked, idToModel[reg.modelId]!!.wrap())
-        }
+            bakedModels.forEach { (reg, baked) ->
+                loadedModels[reg.modelId] = ModelEntry(baked, idToModel[reg.modelId]!!.wrap())
+            }
 
-        // Clear cache
-        modelsToBake.clear()
+            // Clear cache
+            modelsToBake.clear()
 
-        // Register baked models
-        bakedModels.forEach { (reg, bakedModel) ->
-            // uses the User-defined decorator to wrap or edit the baked model
-            val finalModel = reg.decorator?.decorate(bakedModel, reg.modelId) ?: bakedModel
+            // Register baked models
+            bakedModels.forEach { (reg, bakedModel) ->
+                // uses the User-defined decorator to wrap or edit the baked model
+                val finalModel = reg.decorator?.decorate(bakedModel, reg.modelId) ?: bakedModel
 
-            // register the model into the game
-            event.modelRegistry.putObject(reg.modelId, finalModel)
+                // register the model into the game
+                event.modelRegistry.putObject(reg.modelId, finalModel)
+            }
         }
     }
 
@@ -153,5 +160,13 @@ internal object ModelManager {
 
     private fun bake(model: IModel): IBakedModel {
         return model.bake(TRSRTransformation.identity(), DefaultVertexFormats.ITEM, ModelLoader.defaultTextureGetter())
+    }
+
+    fun <R> logTime(prefix: String, func: () -> R): R {
+        val start = System.currentTimeMillis()
+        val res = func()
+        val end = System.currentTimeMillis()
+        ModelLoaderMod.logger.info("$prefix ${end - start}ms")
+        return res
     }
 }

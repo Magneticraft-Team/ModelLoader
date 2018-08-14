@@ -1,6 +1,8 @@
 package com.cout970.modelloader.api
 
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import java.io.Closeable
 
@@ -27,7 +29,7 @@ interface IRenderCache : Closeable {
 /**
  * RenderCache implementation that uses DisplayLists to reduce GPU access overhead
  */
-class RenderCacheDisplayList(val renderFunc: () -> Unit) : IRenderCache {
+class ModelCache(val renderFunc: () -> Unit) : IRenderCache {
     private var id: Int = -1
 
     override fun render() {
@@ -45,5 +47,34 @@ class RenderCacheDisplayList(val renderFunc: () -> Unit) : IRenderCache {
             GlStateManager.glDeleteLists(id, 1)
         }
         id = -1
+    }
+}
+
+/**
+ * RenderCache wrapper that groups all elements that can be rendered with the same texture
+ */
+class TextureModelCache(val texture: ResourceLocation, vararg val cache: IRenderCache) : IRenderCache {
+
+    override fun render() {
+        Minecraft.getMinecraft().textureManager.bindTexture(texture)
+        cache.forEach { it.render() }
+    }
+
+    override fun close() {
+        cache.forEach { it.close() }
+    }
+}
+
+/**
+ * RenderCache wrapper that groups other RenderCaches
+ */
+class ModelGroupCache(vararg val cache: IRenderCache) : IRenderCache {
+
+    override fun render() {
+        cache.forEach { it.render() }
+    }
+
+    override fun close() {
+        cache.forEach { it.close() }
     }
 }

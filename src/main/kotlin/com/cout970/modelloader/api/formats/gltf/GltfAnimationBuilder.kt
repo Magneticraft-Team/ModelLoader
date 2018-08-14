@@ -1,7 +1,9 @@
 package com.cout970.modelloader.api.formats.gltf
 
 import com.cout970.modelloader.ModelLoaderMod
-import com.cout970.modelloader.api.RenderCacheDisplayList
+import com.cout970.modelloader.api.ModelCache
+import com.cout970.modelloader.api.ModelGroupCache
+import com.cout970.modelloader.api.TextureModelCache
 import com.cout970.modelloader.api.animation.AnimatedModel
 import com.cout970.modelloader.api.util.TRSTransformation
 import com.cout970.vector.api.IVector2
@@ -15,6 +17,8 @@ import net.minecraftforge.client.model.ModelLoader
 import org.lwjgl.opengl.GL11
 import java.util.function.Function
 import javax.vecmath.Point3f
+
+private typealias VertexGroup = Pair<ResourceLocation, List<GltfAnimationBuilder.Vertex>>
 
 class GltfAnimationBuilder {
 
@@ -30,12 +34,23 @@ class GltfAnimationBuilder {
     var useTextureAtlas = false
 
     /**
+     * Set of all node indices to ignore, if the node is a group, their children will be excluded too
+     */
+    var excludedNodes: Set<Int> = emptySet()
+
+    /**
+     * Mapping function that can change the textures of the final model
+     */
+    var transformTexture: ((ResourceLocation) -> ResourceLocation)? = null
+
+    /**
      * Convert all the animations on the model to AnimatedModel
      */
     fun build(model: GltfModel): List<Pair<String, AnimatedModel>> {
 
         val scene = model.structure.scenes[model.definition.scene ?: 0]
-        val nodes = scene.nodes.map { node ->
+        val nodes = scene.nodes.mapNotNull { node ->
+            if (node.index in excludedNodes) return@mapNotNull null
             processNode(node)
         }
 
@@ -72,12 +87,17 @@ class GltfAnimationBuilder {
         }
     }
 
-    private fun bakeNode(node: AnimatedNode): AnimatedModel.Node = AnimatedModel.Node(
-            index = node.index,
-            transform = node.transform,
-            children = node.dynamic.map { bakeNode(it) },
-            cache = RenderCacheDisplayList { renderVertex(node.static) }
-    )
+    private fun bakeNode(node: AnimatedNode): AnimatedModel.Node {
+        val caches = node.static.map { (tex, vertex) ->
+            TextureModelCache(tex, ModelCache { renderVertex(vertex) })
+        }
+        return AnimatedModel.Node(
+                index = node.index,
+                transform = node.transform,
+                children = node.dynamic.map { bakeNode(it) },
+                cache = ModelGroupCache(*caches.toTypedArray())
+        )
+    }
 
     private fun compactNodes(nodes: List<NodeTree>, animation: GltfStructure.Animation): List<AnimatedNode> {
         val animatedNodes = animation.channels.map { it.node }.toSet()
@@ -90,13 +110,33 @@ class GltfAnimationBuilder {
         val (animated, nonAnimated) = list.partition { it.index in animatedNodes }
 
         val childrenVertex = nonAnimated.flatMap { node -> node.static }
-        val thisVertex = tree.vertex.map { matrix.transform(it) }
+        val thisVertex = tree.vertex.map { (tex, list) -> tex to list.map { matrix.transform(it) } }
 
-        return AnimatedNode(tree.index, tree.transform, animated, childrenVertex + thisVertex)
+        val map = mutableMapOf<ResourceLocation, MutableList<Vertex>>()
+
+        // join duplicated pairs (groups of vertex with the same texture)
+        childrenVertex.forEach { (tex, vertex) ->
+            if (tex in map) {
+                map[tex]!!.addAll(vertex)
+            } else {
+                map[tex] = vertex.toMutableList()
+            }
+        }
+
+        thisVertex.forEach { (tex, vertex) ->
+            if (tex in map) {
+                map[tex]!!.addAll(vertex)
+            } else {
+                map[tex] = vertex.toMutableList()
+            }
+        }
+
+        return AnimatedNode(tree.index, tree.transform, animated, map.toList())
     }
 
     private fun processNode(node: GltfStructure.Node): NodeTree {
-        val children = node.children.map {
+        val children = node.children.mapNotNull {
+            if (it.index in excludedNodes) return@mapNotNull null
             processNode(it)
         }
         val mesh = node.mesh
@@ -106,8 +146,8 @@ class GltfAnimationBuilder {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun collectVertex(mesh: GltfStructure.Mesh): List<Vertex> {
-        val vertex = mutableListOf<Vertex>()
+    private fun collectVertex(mesh: GltfStructure.Mesh): List<VertexGroup> {
+        val groups = mutableMapOf<ResourceLocation, MutableList<Vertex>>()
 
         mesh.primitives.forEach { prim ->
             if (prim.mode != GltfMode.TRIANGLES && prim.mode != GltfMode.QUADS) {
@@ -140,20 +180,29 @@ class GltfAnimationBuilder {
 
             val pos = posBuffer.data as List<IVector3>
             val tex = texBuffer?.data as? List<IVector2> ?: emptyList()
-            val texture = bakedTextureGetter.apply(prim.material)
+            val texLocation = transformTexture?.invoke(prim.material) ?: prim.material
+            val sprite = bakedTextureGetter.apply(texLocation)
+
+            val vertex = mutableListOf<Vertex>()
 
             if (prim.mode == GltfMode.QUADS) {
                 for (i in 0 until pos.size / 4) {
-                    collectQuad(i * 4, pos, tex, texture, vertex)
+                    collectQuad(i * 4, pos, tex, sprite, vertex)
                 }
             } else {
                 for (i in 0 until pos.size / 3) {
-                    collectQuadFromTriangle(i * 3, pos, tex, texture, vertex)
+                    collectQuadFromTriangle(i * 3, pos, tex, sprite, vertex)
                 }
+            }
+
+            if (texLocation in groups) {
+                groups[texLocation]!!.addAll(vertex)
+            } else {
+                groups[texLocation] = vertex.toMutableList()
             }
         }
 
-        return vertex
+        return groups.toList()
     }
 
     private fun collectQuad(index: Int, pos: List<IVector3>, tex: List<IVector2>,
@@ -253,7 +302,7 @@ class GltfAnimationBuilder {
 
     data class NodeTree(
             val index: Int,
-            val vertex: List<Vertex>,
+            val vertex: List<VertexGroup>,
             val transform: TRSTransformation,
             val children: List<NodeTree>
     )
@@ -262,6 +311,6 @@ class GltfAnimationBuilder {
             val index: Int,
             val transform: TRSTransformation,
             val dynamic: List<AnimatedNode>,
-            val static: List<Vertex>
+            val static: List<VertexGroup>
     )
 }

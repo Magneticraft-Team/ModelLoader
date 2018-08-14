@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger
 @Mod(
         modid = ModelLoaderMod.MOD_ID,
         name = ModelLoaderMod.MOD_NAME,
-        version = "1.1.0",
+        version = "1.1.1",
         modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter",
         modLanguage = "kotlin"
 )

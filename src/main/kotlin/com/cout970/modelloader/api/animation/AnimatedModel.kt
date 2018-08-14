@@ -16,7 +16,7 @@ typealias Keyframe = Pair<Float, Any>
 
 class AnimatedModel(val rootNodes: List<Node>, val channels: List<Channel>) : IAnimatedModel {
 
-    val length: Float = channels.map { it.keyframes.map { (time) -> time }.max()!! }.max()!!
+    val length: Float = channels.mapNotNull { it.keyframes.map { (time) -> time }.max() }.max() ?: 1f
 
     data class Node(
             val index: Int,

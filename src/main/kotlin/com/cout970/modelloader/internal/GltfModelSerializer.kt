@@ -153,7 +153,7 @@ internal object GltfModelSerializer {
                 scale = node.scale ?: Vector3.ONE
         )
 
-        return Node(nodeIndex, children, transform, mesh)
+        return Node(nodeIndex, children, transform, mesh, node.name)
     }
 
     @Suppress("UNCHECKED_CAST")

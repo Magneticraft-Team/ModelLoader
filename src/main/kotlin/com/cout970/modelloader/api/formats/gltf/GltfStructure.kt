@@ -18,7 +18,8 @@ object GltfStructure {
             val index: Int,
             val children: List<Node>,
             val transform: TRSTransformation,
-            val mesh: Mesh? = null
+            val mesh: Mesh? = null,
+            val name: String? = null
     )
 
     class Mesh(
