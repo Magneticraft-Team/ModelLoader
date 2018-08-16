@@ -11,7 +11,9 @@ import org.apache.logging.log4j.Logger
 @Mod(
         modid = ModelLoaderMod.MOD_ID,
         name = ModelLoaderMod.MOD_NAME,
-        version = "1.1.1",
+        version = "1.1.2",
+        acceptedMinecraftVersions = "[1.12]",
+        dependencies = "required-after:forgelin",
         modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter",
         modLanguage = "kotlin"
 )
@@ -34,7 +36,9 @@ object ModelLoaderMod {
         this.logger = event.modLog
 
         val config = Configuration(event.suggestedConfigurationFile)
+        config.load()
         this.useMultiThreading = config["global", "use_multi_threading", true].boolean
+        config.save()
 
         logger.info("${ModelLoaderMod.MOD_ID} preInit start")
         proxy?.init()

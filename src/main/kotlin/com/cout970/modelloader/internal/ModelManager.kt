@@ -22,7 +22,7 @@ import net.minecraftforge.client.model.obj.OBJModel
 import net.minecraftforge.common.model.TRSRTransformation
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import kotlin.streams.toList
+import java.util.stream.Collectors
 
 /**
  * Created by cout970 on 2017/03/05.
@@ -69,7 +69,7 @@ internal object ModelManager {
                         .toList()
                         .parallelStream()
                         .map { (id, model) -> id to bake(model) }
-                        .toList()
+                        .collect(Collectors.toList())
             } else {
                 modelsToBake
                         .map { (id, model) -> id to bake(model) }
@@ -109,7 +109,7 @@ internal object ModelManager {
                     .map { it.modelLocation }
                     .distinct()
                     .map { it to loadModel(manager, it) }
-                    .toList()
+                    .collect(Collectors.toList())
                     .toMap()
         } else {
             models.asSequence()
