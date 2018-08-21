@@ -197,7 +197,7 @@ internal object GltfModelSerializer {
 
         val extraData = parse(file, location) { path ->
             val basePath = location.resourcePath.substringBeforeLast('/', "")
-            val loc = ResourceLocation(location.resourceDomain, "$basePath/$path")
+            val loc = ResourceLocation(location.resourceDomain, if (basePath.isEmpty()) path else "$basePath/$path")
 
             resourceManager.getResource(loc).inputStream
         }

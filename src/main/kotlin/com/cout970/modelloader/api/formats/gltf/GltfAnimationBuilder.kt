@@ -74,7 +74,9 @@ class GltfAnimationBuilder {
             processNode(node)
         }
 
-        return AnimatedModel(nodes.map { compactNode(it, emptySet()) }.map { bakeNode(it) }, emptyList())
+        val rootNodes = nodes.map { compactNode(it, emptySet()) }.map { bakeNode(it) }
+
+        return AnimatedModel(rootNodes, emptyList())
     }
 
     private fun modelChannel(gltfChannels: List<GltfStructure.Channel>): List<AnimatedModel.Channel> {
@@ -109,10 +111,8 @@ class GltfAnimationBuilder {
         val matrix = tree.transform.matrix.apply { transpose() }
         val (animated, nonAnimated) = list.partition { it.index in animatedNodes }
 
-        val childrenVertex = nonAnimated.flatMap { node -> node.static }
-        val thisVertex = tree.vertex.map { (tex, list) -> tex to list.map { matrix.transform(it) } }
-
         val map = mutableMapOf<ResourceLocation, MutableList<Vertex>>()
+        val childrenVertex = nonAnimated.flatMap { node -> node.static }
 
         // join duplicated pairs (groups of vertex with the same texture)
         childrenVertex.forEach { (tex, vertex) ->
@@ -123,7 +123,7 @@ class GltfAnimationBuilder {
             }
         }
 
-        thisVertex.forEach { (tex, vertex) ->
+        tree.vertex.forEach { (tex, vertex) ->
             if (tex in map) {
                 map[tex]!!.addAll(vertex)
             } else {
@@ -131,7 +131,9 @@ class GltfAnimationBuilder {
             }
         }
 
-        return AnimatedNode(tree.index, tree.transform, animated, map.toList())
+        val staticPart = map.mapValues { (_, vertex) -> vertex.map { matrix.transform(it) } }.toList()
+
+        return AnimatedNode(tree.index, tree.transform, animated, staticPart)
     }
 
     private fun processNode(node: GltfStructure.Node): NodeTree {
