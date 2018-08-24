@@ -118,7 +118,11 @@ class GltfAnimationBuilder {
                 node.static.map { (tex, vertex) -> tex to vertex.map { matrix.transform(it) } }
             }
         }
-        val thisVertex = tree.vertex.map { (tex, list) -> tex to list.map { matrix.transform(it) } }
+        val thisVertex = if (tree.index in animatedNodes) {
+            tree.vertex
+        } else {
+            tree.vertex.map { (tex, list) -> tex to list.map { matrix.transform(it) } }
+        }
 
         val map = mutableMapOf<ResourceLocation, MutableList<Vertex>>()
 
