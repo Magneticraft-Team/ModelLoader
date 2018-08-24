@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger
 @Mod(
         modid = ModelLoaderMod.MOD_ID,
         name = ModelLoaderMod.MOD_NAME,
-        version = "1.1.2",
+        version = "1.1.3",
         acceptedMinecraftVersions = "[1.12]",
 //        dependencies = "required-after:forgelin", TODO change on release
         modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter",

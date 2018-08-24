@@ -9,6 +9,7 @@ import com.cout970.modelloader.api.formats.gltf.GltfStructure.Mesh
 import com.cout970.modelloader.api.formats.gltf.GltfStructure.Node
 import com.cout970.modelloader.api.formats.gltf.GltfStructure.Scene
 import com.cout970.modelloader.api.util.TRSTransformation
+import com.cout970.modelloader.internal.ModelManager.MISSING_TEXTURE
 import com.cout970.vector.api.IQuaternion
 import com.cout970.vector.api.IVector2
 import com.cout970.vector.api.IVector3
@@ -34,8 +35,6 @@ private val GSON = GsonBuilder()
 
 
 internal object GltfModelSerializer {
-
-    private val MISSING_TEXTURE = ResourceLocation("minecraft", "missingno")
 
     private fun parseBuffers(file: GltfFile, folder: (String) -> InputStream): List<ByteArray> {
         return file.buffers.map { buff ->

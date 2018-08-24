@@ -111,8 +111,16 @@ class GltfAnimationBuilder {
         val matrix = tree.transform.matrix.apply { transpose() }
         val (animated, nonAnimated) = list.partition { it.index in animatedNodes }
 
+        val childrenVertex = if (tree.index in animatedNodes) {
+            nonAnimated.flatMap { node -> node.static }
+        } else {
+            nonAnimated.flatMap { node ->
+                node.static.map { (tex, vertex) -> tex to vertex.map { matrix.transform(it) } }
+            }
+        }
+        val thisVertex = tree.vertex.map { (tex, list) -> tex to list.map { matrix.transform(it) } }
+
         val map = mutableMapOf<ResourceLocation, MutableList<Vertex>>()
-        val childrenVertex = nonAnimated.flatMap { node -> node.static }
 
         // join duplicated pairs (groups of vertex with the same texture)
         childrenVertex.forEach { (tex, vertex) ->
@@ -123,7 +131,7 @@ class GltfAnimationBuilder {
             }
         }
 
-        tree.vertex.forEach { (tex, vertex) ->
+        thisVertex.forEach { (tex, vertex) ->
             if (tex in map) {
                 map[tex]!!.addAll(vertex)
             } else {
@@ -131,9 +139,9 @@ class GltfAnimationBuilder {
             }
         }
 
-        val staticPart = map.mapValues { (_, vertex) -> vertex.map { matrix.transform(it) } }.toList()
+        val allAnimated = animated + nonAnimated.filter { it.dynamic.isNotEmpty() }.map { it.copy(static = emptyList()) }
 
-        return AnimatedNode(tree.index, tree.transform, animated, staticPart)
+        return AnimatedNode(tree.index, tree.transform, allAnimated, map.toList())
     }
 
     private fun processNode(node: GltfStructure.Node): NodeTree {

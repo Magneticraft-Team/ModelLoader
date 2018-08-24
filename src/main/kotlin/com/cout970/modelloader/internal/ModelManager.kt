@@ -30,11 +30,13 @@ import java.util.stream.Collectors
 internal object ModelManager {
 
     data class ModelRegistration(
-            val modelId: ModelResourceLocation,
-            val modelLocation: ResourceLocation,
-            val bake: Boolean,
-            val decorator: IBakedModelDecorator?
+        val modelId: ModelResourceLocation,
+        val modelLocation: ResourceLocation,
+        val bake: Boolean,
+        val decorator: IBakedModelDecorator?
     )
+
+    val MISSING_TEXTURE = ResourceLocation("${ModelLoaderMod.MOD_ID}:missing_texture.png")
 
     // registered models
     internal val models = mutableListOf<ModelRegistration>()
@@ -53,6 +55,7 @@ internal object ModelManager {
 
         //register every texture once
         logTime("Registering textures") {
+            event.map.registerSprite(MISSING_TEXTURE)
             texturesToRegister.forEach {
                 event.map.registerSprite(it)
             }
@@ -66,13 +69,13 @@ internal object ModelManager {
             // Bake all models
             val bakedModels = if (ModelLoaderMod.useMultiThreading) {
                 modelsToBake
-                        .toList()
-                        .parallelStream()
-                        .map { (id, model) -> id to bake(model) }
-                        .collect(Collectors.toList())
+                    .toList()
+                    .parallelStream()
+                    .map { (id, model) -> id to bake(model) }
+                    .collect(Collectors.toList())
             } else {
                 modelsToBake
-                        .map { (id, model) -> id to bake(model) }
+                    .map { (id, model) -> id to bake(model) }
             }
 
             // Fill missing loadedModels entries
@@ -106,17 +109,17 @@ internal object ModelManager {
         // loads every model
         val cache = if (ModelLoaderMod.useMultiThreading) {
             models.parallelStream()
-                    .map { it.modelLocation }
-                    .distinct()
-                    .map { it to loadModel(manager, it) }
-                    .collect(Collectors.toList())
-                    .toMap()
+                .map { it.modelLocation }
+                .distinct()
+                .map { it to loadModel(manager, it) }
+                .collect(Collectors.toList())
+                .toMap()
         } else {
             models.asSequence()
-                    .map { it.modelLocation }
-                    .distinct()
-                    .map { it to loadModel(manager, it) }
-                    .toMap()
+                .map { it.modelLocation }
+                .distinct()
+                .map { it to loadModel(manager, it) }
+                .toMap()
         }
 
         models.forEach { reg ->
