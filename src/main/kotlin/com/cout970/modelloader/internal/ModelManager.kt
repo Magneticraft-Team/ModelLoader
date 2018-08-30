@@ -148,7 +148,7 @@ internal object ModelManager {
                 else -> McxModelSerializer.load(resource)
             }
         } catch (e: Exception) {
-            ModelLoaderMod.logger.error("Error reading model data for location: $this")
+            ModelLoaderMod.logger.error("Error reading model data for location: $location")
             e.printStackTrace()
         }
         return ModelLoaderRegistry.getMissingModel()
