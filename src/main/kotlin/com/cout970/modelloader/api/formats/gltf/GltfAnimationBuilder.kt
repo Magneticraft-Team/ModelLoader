@@ -11,6 +11,7 @@ import com.cout970.vector.api.IVector3
 import com.cout970.vector.extensions.*
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.model.ModelLoader
@@ -82,9 +83,9 @@ class GltfAnimationBuilder {
     private fun modelChannel(gltfChannels: List<GltfStructure.Channel>): List<AnimatedModel.Channel> {
         return gltfChannels.filter { it.path != GltfChannelPath.weights }.map {
             AnimatedModel.Channel(
-                    index = it.node,
-                    type = it.path.toChannelType(),
-                    keyframes = it.times.zip(it.values)
+                index = it.node,
+                type = it.path.toChannelType(),
+                keyframes = it.times.zip(it.values)
             )
         }
     }
@@ -94,10 +95,10 @@ class GltfAnimationBuilder {
             TextureModelCache(tex, ModelCache { renderVertex(vertex) })
         }
         return AnimatedModel.Node(
-                index = node.index,
-                transform = node.transform,
-                children = node.dynamic.map { bakeNode(it) },
-                cache = ModelGroupCache(*caches.toTypedArray())
+            index = node.index,
+            transform = node.transform,
+            children = node.dynamic.map { bakeNode(it) },
+            cache = ModelGroupCache(*caches.toTypedArray())
         )
     }
 
@@ -209,10 +210,12 @@ class GltfAnimationBuilder {
                 }
             }
 
-            if (texLocation in groups) {
-                groups[texLocation]!!.addAll(vertex)
+            val texture = if (useTextureAtlas) TextureMap.LOCATION_BLOCKS_TEXTURE else texLocation
+
+            if (texture in groups) {
+                groups[texture]!!.addAll(vertex)
             } else {
-                groups[texLocation] = vertex.toMutableList()
+                groups[texture] = vertex.toMutableList()
             }
         }
 
@@ -273,9 +276,9 @@ class GltfAnimationBuilder {
 
             vertex.forEach {
                 pos(it.x.toDouble(), it.y.toDouble(), it.z.toDouble())
-                        .tex(it.u.toDouble(), it.v.toDouble())
-                        .normal(it.xn, it.yn, it.zn)
-                        .endVertex()
+                    .tex(it.u.toDouble(), it.v.toDouble())
+                    .normal(it.xn, it.yn, it.zn)
+                    .endVertex()
             }
             tessellator.draw()
         }
@@ -289,7 +292,7 @@ class GltfAnimationBuilder {
     }
 
     private fun vertexOf(pos: IVector3, uv: IVector2, normal: IVector3) = Vertex(
-            pos.xf, pos.yf, pos.zf, uv.xf, uv.yf, normal.xf, normal.yf, normal.zf
+        pos.xf, pos.yf, pos.zf, uv.xf, uv.yf, normal.xf, normal.yf, normal.zf
     )
 
     private fun IMatrix4.transform(vertex: Vertex): Vertex {
@@ -309,22 +312,22 @@ class GltfAnimationBuilder {
     }
 
     data class Vertex(
-            val x: Float, val y: Float, val z: Float,
-            val u: Float, val v: Float,
-            val xn: Float, val yn: Float, val zn: Float
+        val x: Float, val y: Float, val z: Float,
+        val u: Float, val v: Float,
+        val xn: Float, val yn: Float, val zn: Float
     )
 
     data class NodeTree(
-            val index: Int,
-            val vertex: List<VertexGroup>,
-            val transform: TRSTransformation,
-            val children: List<NodeTree>
+        val index: Int,
+        val vertex: List<VertexGroup>,
+        val transform: TRSTransformation,
+        val children: List<NodeTree>
     )
 
     data class AnimatedNode(
-            val index: Int,
-            val transform: TRSTransformation,
-            val dynamic: List<AnimatedNode>,
-            val static: List<VertexGroup>
+        val index: Int,
+        val transform: TRSTransformation,
+        val dynamic: List<AnimatedNode>,
+        val static: List<VertexGroup>
     )
 }
