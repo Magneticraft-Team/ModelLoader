@@ -36,7 +36,7 @@ internal object ModelManager {
         val decorator: IBakedModelDecorator?
     )
 
-    val MISSING_TEXTURE = ResourceLocation("${ModelLoaderMod.MOD_ID}:missing_texture.png")
+    val MISSING_TEXTURE = ResourceLocation("missingno")
 
     // registered models
     internal val models = mutableListOf<ModelRegistration>()
