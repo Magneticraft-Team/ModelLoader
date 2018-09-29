@@ -1,8 +1,6 @@
 package com.cout970.modelloader
 
-import com.cout970.modelloader.internal.CustomModelLoader
 import com.cout970.modelloader.proxy.IProxy
-import net.minecraftforge.client.model.ModelLoaderRegistry
 import net.minecraftforge.common.config.Configuration
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
@@ -13,11 +11,12 @@ import org.apache.logging.log4j.Logger
 @Mod(
         modid = ModelLoaderMod.MOD_ID,
         name = ModelLoaderMod.MOD_NAME,
-        version = "1.1.4",
+        version = "1.1.5",
         acceptedMinecraftVersions = "[1.12]",
         dependencies = "required-after:forgelin", // TODO change on release
         modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter",
-        modLanguage = "kotlin"
+        modLanguage = "kotlin",
+        clientSideOnly = true
 )
 object ModelLoaderMod {
 
@@ -41,8 +40,6 @@ object ModelLoaderMod {
         config.load()
         this.useMultiThreading = config["global", "use_multi_threading", true].boolean
         config.save()
-
-        ModelLoaderRegistry.registerLoader(CustomModelLoader)
 
         logger.info("${ModelLoaderMod.MOD_ID} preInit start")
         proxy?.init()
