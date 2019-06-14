@@ -26,19 +26,21 @@ interface IBakedModelDecorator {
  */
 abstract class ForgeDecorator : IBakedModelDecorator {
 
-    private val flipX = TRSRTransformation(null, null, Vector3f(-1f, 1f, 1f), null)
+    companion object {
+        val flipX = TRSRTransformation(null, null, Vector3f(-1f, 1f, 1f), null)
 
-    fun get(tx: Float, ty: Float, tz: Float, ax: Float, ay: Float, az: Float, s: Float): TRSRTransformation {
-        return TRSRTransformation.blockCenterToCorner(TRSRTransformation(
+        fun get(tx: Float, ty: Float, tz: Float, ax: Float, ay: Float, az: Float, s: Float): TRSRTransformation {
+            return TRSRTransformation.blockCenterToCorner(TRSRTransformation(
                 Vector3f(tx / 16, ty / 16, tz / 16),
                 TRSRTransformation.quatFromXYZDegrees(Vector3f(ax, ay, az)),
                 Vector3f(s, s, s),
                 null))
-    }
+        }
 
-    fun leftify(transform: TRSRTransformation): TRSRTransformation {
-        return TRSRTransformation.blockCenterToCorner(
+        fun leftify(transform: TRSRTransformation): TRSRTransformation {
+            return TRSRTransformation.blockCenterToCorner(
                 flipX.compose(TRSRTransformation.blockCornerToCenter(transform)).compose(flipX))
+        }
     }
 }
 

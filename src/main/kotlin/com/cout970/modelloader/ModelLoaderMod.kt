@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger
 @Mod(
         modid = ModelLoaderMod.MOD_ID,
         name = ModelLoaderMod.MOD_NAME,
-        version = "1.1.5",
+        version = "1.1.6",
         acceptedMinecraftVersions = "[1.12]",
         dependencies = "required-after:forgelin", // TODO change on release
         modLanguageAdapter = "com.cout970.modelloader.KotlinAdapter",
@@ -41,8 +41,8 @@ object ModelLoaderMod {
         this.useMultiThreading = config["global", "use_multi_threading", true].boolean
         config.save()
 
-        logger.info("${ModelLoaderMod.MOD_ID} preInit start")
+        logger.info("$MOD_ID preInit start")
         proxy?.init()
-        logger.info("${ModelLoaderMod.MOD_ID} preInit end")
+        logger.info("$MOD_ID preInit end")
     }
 }

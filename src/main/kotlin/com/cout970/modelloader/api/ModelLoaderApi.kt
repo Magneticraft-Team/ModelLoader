@@ -1,6 +1,5 @@
 package com.cout970.modelloader.api
 
-import com.cout970.modelloader.ModelLoaderMod
 import com.cout970.modelloader.internal.CustomModelLoader
 import com.cout970.modelloader.internal.ModelManager
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
@@ -54,7 +53,7 @@ object ModelLoaderApi {
      */
     @SideOnly(Side.CLIENT)
     fun registerDomain(modId: String) {
-        ModelLoaderMod.logger.info("Domains $modId as been added")
+        println("Domain $modId as been added")
         CustomModelLoader.validDomains.add(modId)
     }
 
