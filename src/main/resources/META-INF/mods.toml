@@ -1,0 +1,21 @@
+modLoader="javafml"
+loaderVersion="[28,)"
+issueTrackerURL="https://github.com/Magneticraft-Team/ModelLoader/issues"
+
+[[mods]]
+modId="modelloader"
+version="${file.jarVersion}"
+displayName="Model Loader"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/modelloader"
+authors="Cout970"
+side="CLIENT"
+description='''
+Allow mods to use several model formats
+'''
+
+[[dependencies.modeloader]]
+modId="forge"
+mandatory=true
+versionRange="[28,)"
+ordering="NONE"
+side="BOTH"

@@ -1,60 +1,25 @@
-
-# default forge gitignore
-eclipse
-bin*
-.launch
+# eclipse
+bin
+*.launch
 .settings
 .metadata
 .classpath
 .project
-idea
-out*
-.ipr*
-.iws*
-.iml
-.idea
-build
-.gradle
-ingore
-#
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.war
-*.ear
-
-
-org.*
-bin
-
-#idea
-*.iml
+# idea
+out
 *.ipr
 *.iws
-*.eml
-out
+*.iml
+.idea
 
-#runtime
+# gradle
+build
+.gradle
+
+# other
+eclipse
 run
 
-#mac
-.DS_Store
-*.command
-
-#linux
-*~
-
-#workspace
-asm/**
-config/**
-crash-reports/**
-minetweaker.log
-logs/**
-saves/**
-
-/server.properties
-*.psd
-classes
-extras/**
+# Files from Forge MDK
+forge*changelog.txt
