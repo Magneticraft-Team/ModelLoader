@@ -7,6 +7,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IUnbakedModel
+import net.minecraft.client.renderer.model.ItemCameraTransforms
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.client.renderer.vertex.VertexFormatElement
@@ -53,7 +54,7 @@ internal class McxBaker(val format: VertexFormat, val textureGetter: Function<Re
     fun bake(model: UnbakedMcxModel): BakedMcxModel {
         val quads = model.quads.bake(model.parts)
         val particles = textureGetter.apply(model.particleTexture)
-        return BakedMcxModel(model, particles, quads)
+        return BakedMcxModel(model, particles, ItemCameraTransforms.DEFAULT, quads)
     }
 
     fun Mesh.bake(parts: List<UnbakedMcxModel.Part>): List<BakedQuad> {

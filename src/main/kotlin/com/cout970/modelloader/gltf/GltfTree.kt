@@ -130,9 +130,17 @@ object GltfTree {
 
         // TexturePath: windmill.png
         // Location: modid:models/block/gltf/windmill.gltf
-        // Result: modid:textures/block/gltf/windmill.png
+        // Result: modid:textures/block/gltf/windmill
 
-        return ResourceLocation(location.namespace, "textures/$localPath/$texturePath")
+        val finalPath = buildString {
+            if (localPath.isNotEmpty()) {
+                append(localPath)
+                append("/")
+            }
+            append(texturePath.substringBeforeLast('.'))
+        }
+
+        return ResourceLocation(location.namespace, finalPath)
     }
 
     private fun parseScenes(file: GltfFile, meshes: List<Mesh>): List<Scene> {

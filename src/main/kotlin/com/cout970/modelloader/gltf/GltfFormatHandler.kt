@@ -3,6 +3,7 @@ package com.cout970.modelloader.gltf
 import com.cout970.modelloader.*
 import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IUnbakedModel
+import net.minecraft.client.renderer.model.ItemCameraTransforms
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.client.renderer.vertex.VertexFormatElement
@@ -12,9 +13,9 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad
 import java.io.InputStream
 import java.util.function.Function
+import javax.vecmath.Point3f
 import javax.vecmath.Vector2d
 import javax.vecmath.Vector3d
-import javax.vecmath.Vector4f
 
 object GltfFormatHandler : IFormatHandler {
 
@@ -48,7 +49,7 @@ internal class GltfBaker(val format: VertexFormat, val bakedTextureGetter: Funct
         val particleLocation = model.tree.textures.firstOrNull() ?: ModelLoaderMod.defaultParticleTexture
         val particle = bakedTextureGetter.apply(particleLocation)
 
-        return BakedGltfModel(nodeQuads, particle)
+        return BakedGltfModel(nodeQuads, particle, ItemCameraTransforms.DEFAULT)
     }
 
     fun recursiveBakeNodes(node: GltfTree.Node, transform: TRSTransformation, list: MutableList<BakedQuad>) {
@@ -98,7 +99,7 @@ internal class GltfBaker(val format: VertexFormat, val bakedTextureGetter: Funct
 
             val matrix = globalTransform.matrixVec.apply { transpose() }
             val newPos = pos.map { vec ->
-                Vector4f(vec.x.toFloat(), vec.y.toFloat(), vec.z.toFloat(), 1.0f)
+                Point3f(vec.x.toFloat(), vec.y.toFloat(), vec.z.toFloat())
                     .also { matrix.transform(it) }
                     .run { Vector3d(x.toDouble(), y.toDouble(), z.toDouble()) }
             }
@@ -156,7 +157,10 @@ internal class GltfBaker(val format: VertexFormat, val bakedTextureGetter: Funct
 
         val ac = c - a
         val ab = b - a
-        val normal = -(ac cross ab).norm()
+        val rawNorm = -(ac cross ab).norm()
+        val normal = if (rawNorm.x.isNaN() || rawNorm.y.isNaN() || rawNorm.z.isNaN()) {
+            Vector3d(0.0, 1.0, 0.0)
+        } else rawNorm
 
         return UnpackedBakedQuad.Builder(format).apply {
             setContractUVs(true)

@@ -12,11 +12,11 @@ import kotlin.math.sqrt
 data class TRSTransformation(
     val translation: Vector3d = Vector3d(),
     val rotation: Quat4d = Quat4d(0.0, 0.0, 0.0, 1.0),
-    val scale: Vector3d = Vector3d()
+    val scale: Vector3d = Vector3d(1.0, 1.0, 1.0)
 ) : ITransformation {
 
     // Gson pls
-    private constructor() : this(Vector3d(), Quat4d(0.0, 0.0, 0.0, 1.0), Vector3d())
+    private constructor() : this(Vector3d(), Quat4d(0.0, 0.0, 0.0, 1.0), Vector3d(1.0, 1.0, 1.0))
 
     override fun getMatrixVec(): Matrix4f {
         val self = this
@@ -24,7 +24,9 @@ data class TRSTransformation(
             setIdentity()
 
             // rotation
-            setRotation(-self.rotation)
+            if (rotation.w != 0.0) {
+                this.setRotation(Quat4f(rotation).apply { inverse() })
+            }
 
             // translation
             m30 = self.translation.x.toFloat()
@@ -75,7 +77,7 @@ internal fun Matrix4d.getRotation(): Quat4d {
 
 internal fun Matrix4d.toTRS(): TRSTransformation {
     val translation = Vector3d(this.m30, this.m31, this.m32)
-    val rotation = this.getRotation()
+    val rotation = Quat4d().setFromUnnormalized(this)
     val scale = Vector3d(
         sqrt(this.m00 * this.m00 + this.m01 * this.m01 + this.m02 * this.m02),
         sqrt(this.m10 * this.m10 + this.m11 * this.m11 + this.m12 * this.m12),
@@ -148,9 +150,72 @@ internal infix fun Vector3d.cross(other: Vector3d): Vector3d {
     return Vector3d().also { it.cross(this, other) }
 }
 
-
 internal fun Vector4d.asQuaternion(): Quat4d {
     return Quat4d(this)
+}
+
+fun Quat4d.setFromUnnormalized(mat: Matrix4d): Quat4d {
+    var nm00 = mat.m00
+    var nm01 = mat.m01
+    var nm02 = mat.m02
+    var nm10 = mat.m10
+    var nm11 = mat.m11
+    var nm12 = mat.m12
+    var nm20 = mat.m20
+    var nm21 = mat.m21
+    var nm22 = mat.m22
+    val lenX = 1.0f / sqrt(mat.m00 * mat.m00 + mat.m01 * mat.m01 + mat.m02 * mat.m02)
+    val lenY = 1.0f / sqrt(mat.m10 * mat.m10 + mat.m11 * mat.m11 + mat.m12 * mat.m12)
+    val lenZ = 1.0f / sqrt(mat.m20 * mat.m20 + mat.m21 * mat.m21 + mat.m22 * mat.m22)
+    nm00 *= lenX
+    nm01 *= lenX
+    nm02 *= lenX
+    nm10 *= lenY
+    nm11 *= lenY
+    nm12 *= lenY
+    nm20 *= lenZ
+    nm21 *= lenZ
+    nm22 *= lenZ
+    setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
+    return this
+}
+
+private fun Quat4d.setFromNormalized(m00: Double, m01: Double, m02: Double,
+                                     m10: Double, m11: Double, m12: Double,
+                                     m20: Double, m21: Double, m22: Double) {
+    var t: Double
+    val tr = m00 + m11 + m22
+    if (tr >= 0.0f) {
+        t = sqrt(tr + 1.0)
+        w = t * 0.5
+        t = 0.5f / t
+        x = (m12 - m21) * t
+        y = (m20 - m02) * t
+        z = (m01 - m10) * t
+    } else {
+        if (m00 >= m11 && m00 >= m22) {
+            t = sqrt(m00 - (m11 + m22) + 1.0)
+            x = t * 0.5
+            t = 0.5f / t
+            y = (m10 + m01) * t
+            z = (m02 + m20) * t
+            w = (m12 - m21) * t
+        } else if (m11 > m22) {
+            t = sqrt(m11 - (m22 + m00) + 1.0)
+            y = t * 0.5
+            t = 0.5f / t
+            z = (m21 + m12) * t
+            x = (m10 + m01) * t
+            w = (m20 - m02) * t
+        } else {
+            t = sqrt(m22 - (m00 + m11) + 1.0)
+            z = t * 0.5
+            t = 0.5f / t
+            x = (m02 + m20) * t
+            y = (m21 + m12) * t
+            w = (m01 - m10) * t
+        }
+    }
 }
 
 internal class Vector4Deserializer : JsonDeserializer<Vector4d> {

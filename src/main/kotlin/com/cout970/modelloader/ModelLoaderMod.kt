@@ -8,13 +8,10 @@ import net.minecraftforge.client.event.ModelBakeEvent
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.client.model.ModelLoaderRegistry
 import net.minecraftforge.common.ForgeConfigSpec
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.EventPriority
-import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.config.ModConfig
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -23,35 +20,29 @@ lateinit var ModelLoaderMod: ModelLoaderModImpl
 
 @Mod("modelloader")
 class ModelLoaderModImpl {
-    val defaultParticleTexture = ResourceLocation("modelloader:textures/default_particle.png")
-    val defaultModelTexture = ResourceLocation("modelloader:textures/default_model.png")
+    val defaultParticleTexture = ResourceLocation("modelloader:default_particle")
+    val defaultModelTexture = ResourceLocation("modelloader:default_model")
     val logger: Logger = LogManager.getLogger()
 
     init {
         ModelLoaderMod = this
         FMLJavaModLoadingContext.get()?.apply {
-            modEventBus.addListener<FMLCommonSetupEvent> { setup() }
+            modEventBus.addListener<TextureStitchEvent.Pre> { onTextureStitchEvent(it) }
+            modEventBus.addListener<ModelBakeEvent>(EventPriority.HIGH) { onModelBakeEvent(it) }
         }
 
         ModelLoaderRegistry.registerLoader(MLCustomModelLoader)
         ModelFormatRegistry.registerHandler("mcx", McxFormatHandler)
         ModelFormatRegistry.registerHandler("gltf", GltfFormatHandler)
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.spec)
-        MinecraftForge.EVENT_BUS.register(this)
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.spec)
     }
 
-    fun setup() {
-        logger.info("Hello there")
-    }
-
-    @SubscribeEvent
     fun onTextureStitchEvent(event: TextureStitchEvent.Pre) {
         ModelManager.loadModelFiles(Minecraft.getInstance().resourceManager)
         ModelManager.onTextureStitchEvent(event)
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
     fun onModelBakeEvent(event: ModelBakeEvent) {
         ModelManager.onModelBakeEvent(event)
     }

@@ -11,8 +11,8 @@ import net.minecraft.util.ResourceLocation
 import java.util.function.Function
 
 class UnbakedMcxModel(
-    val useAmbientOcclusion: Boolean,
-    val use3dInGui: Boolean,
+    var useAmbientOcclusion: Boolean,
+    var use3dInGui: Boolean,
     val particleTexture: ResourceLocation,
     val parts: List<Part>,
     val quads: Mesh

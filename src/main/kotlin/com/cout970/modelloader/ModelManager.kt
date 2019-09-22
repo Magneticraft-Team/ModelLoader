@@ -1,9 +1,10 @@
 package com.cout970.modelloader
 
+import com.cout970.modelloader.api.ItemTransforms
+import com.cout970.modelloader.api.PreLoadModel
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
-import net.minecraft.client.renderer.model.ModelRotation
 import net.minecraft.client.renderer.texture.ISprite
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.resources.IResourceManager
@@ -12,15 +13,6 @@ import net.minecraftforge.client.event.ModelBakeEvent
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.client.model.ModelLoader
 import java.util.stream.Collectors
-
-data class PreLoadModel(
-    val modelId: ModelResourceLocation,
-    val location: ResourceLocation,
-    val bake: Boolean = true,
-    val rotation: ModelRotation = ModelRotation.X0_Y0,
-    val preBake: ((ModelResourceLocation, IUnbakedModel) -> IUnbakedModel)? = null,
-    val postBake: ((ModelResourceLocation, IBakedModel) -> IBakedModel)? = null
-)
 
 data class PreBakeModel(
     val pre: PreLoadModel,
@@ -32,11 +24,19 @@ data class PostBakeModel(
     val baked: IBakedModel?
 )
 
+interface IItemTransformable {
+    fun setItemTransforms(it: ItemTransforms)
+}
+
 object ModelManager {
     private val registeredModels = mutableListOf<PreLoadModel>()
     private var textureToRegister: Set<ResourceLocation>? = null
     private var modelsToBake: List<PreBakeModel>? = null
     private var loadedModels: Map<ModelResourceLocation, PostBakeModel> = emptyMap()
+
+    fun register(pre: PreLoadModel) {
+        registeredModels += pre
+    }
 
     fun loadModelFiles(resourceManager: IResourceManager) {
         // Load model from disk
@@ -112,6 +112,10 @@ object ModelManager {
         bakedModels.forEach { (pre, bakedModel) ->
             // Ignore null models
             bakedModel ?: return@forEach
+
+            if(bakedModel is IItemTransformable){
+                bakedModel.setItemTransforms(pre.itemTransforms)
+            }
 
             // Allow to alter the model after it gets baked
             val finalModel = pre.postBake?.invoke(pre.modelId, bakedModel) ?: bakedModel
