@@ -49,8 +49,20 @@ data class ItemTransforms(
         val ITEM_DEFAULT = ItemTransforms(
             thirdPersonLeft = ItemTransform(Vector3f(0f, 3f, 1f), Vector3f(0f, 0f, 0f), Vector3f(0.55f, 0.55f, 0.55f)),
             thirdPersonRight = ItemTransform(Vector3f(0f, 3f, 1f), Vector3f(0f, 0f, 0f), Vector3f(0.55f, 0.55f, 0.55f)),
-            firstPersonLeft = ItemTransform(Vector3f(1.13f, 3.2f, 1.13f), Vector3f(1.13f, 0f, -90f), Vector3f(0.68f, 0.68f, 0.68f)),
-            firstPersonRight = ItemTransform(Vector3f(1.13f, 3.2f, 1.13f), Vector3f(1.13f, 0f, -90f), Vector3f(0.68f, 0.68f, 0.68f)),
+            firstPersonLeft = ItemTransform(Vector3f(1.13f, 3.2f, 1.13f), Vector3f(0f, -90f, 25f), Vector3f(0.68f, 0.68f, 0.68f)),
+            firstPersonRight = ItemTransform(Vector3f(1.13f, 3.2f, 1.13f), Vector3f(0f, -90f, 25f), Vector3f(0.68f, 0.68f, 0.68f)),
+            head = ItemTransform(Vector3f(0f, 13f, 7f), Vector3f(0f, 180f, 0f), Vector3f(1f, 1f, 1f)),
+            gui = ItemTransform(),
+            ground = ItemTransform(Vector3f(0f, 2f, 0f), Vector3f(0f, 0f, 0f), Vector3f(0.5f, 0.5f, 0.5f)),
+            fixed = ItemTransform(Vector3f(0f, 0f, 0f), Vector3f(0f, 180f, 0f), Vector3f(1f, 1f, 1f))
+        )
+
+        @JvmField
+        val TOOL_DEFAULT = ItemTransforms(
+            thirdPersonLeft = ItemTransform(Vector3f(0f, 4f, 0.5f), Vector3f(0f, 90f, 0f), Vector3f(0.55f, 0.55f, 0.55f)),
+            thirdPersonRight = ItemTransform(Vector3f(0f, 4f, 0.5f), Vector3f(0f, -90f, 0f), Vector3f(0.55f, 0.55f, 0.55f)),
+            firstPersonLeft = ItemTransform(Vector3f(1.13f, 3.2f, 1.13f), Vector3f(0f, -90f, 25f), Vector3f(0.68f, 0.68f, 0.68f)),
+            firstPersonRight = ItemTransform(Vector3f(1.13f, 3.2f, 1.13f), Vector3f(0f, 90f, -25f), Vector3f(0.68f, 0.68f, 0.68f)),
             head = ItemTransform(Vector3f(0f, 13f, 7f), Vector3f(0f, 180f, 0f), Vector3f(1f, 1f, 1f)),
             gui = ItemTransform(),
             ground = ItemTransform(Vector3f(0f, 2f, 0f), Vector3f(0f, 0f, 0f), Vector3f(0.5f, 0.5f, 0.5f)),

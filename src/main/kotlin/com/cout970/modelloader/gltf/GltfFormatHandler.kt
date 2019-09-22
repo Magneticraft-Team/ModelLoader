@@ -1,9 +1,12 @@
+@file:Suppress("DEPRECATION")
+
 package com.cout970.modelloader.gltf
 
 import com.cout970.modelloader.*
 import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ItemCameraTransforms
+import net.minecraft.client.renderer.model.ModelRotation
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.client.renderer.vertex.VertexFormatElement
@@ -36,14 +39,21 @@ object GltfFormatHandler : IFormatHandler {
     }
 }
 
-internal class GltfBaker(val format: VertexFormat, val bakedTextureGetter: Function<ResourceLocation, TextureAtlasSprite>) {
+internal class GltfBaker(
+    val format: VertexFormat,
+    val bakedTextureGetter: Function<ResourceLocation, TextureAtlasSprite>,
+    val rotation: ModelRotation
+) {
 
     fun bake(model: UnbakedGltfModel): BakedGltfModel {
         val nodeQuads = mutableListOf<BakedQuad>()
         val scene = model.tree.scenes[model.tree.scene]
+        val trs = TRSTransformation(Vector3d(-0.5, -0.5, -0.5)) +
+            rotation.matrixVec.toTRS() +
+            TRSTransformation(Vector3d(0.5, 0.5, 0.5))
 
         scene.nodes.forEach { node ->
-            recursiveBakeNodes(node, TRSTransformation(), nodeQuads)
+            recursiveBakeNodes(node, trs, nodeQuads)
         }
 
         val particleLocation = model.tree.textures.firstOrNull() ?: ModelLoaderMod.defaultParticleTexture

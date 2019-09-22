@@ -87,6 +87,8 @@ internal fun Matrix4d.toTRS(): TRSTransformation {
     return TRSTransformation(translation, rotation, scale)
 }
 
+internal fun Matrix4f.toTRS(): TRSTransformation = Matrix4d(this).toTRS()
+
 internal operator fun Matrix4f.times(other: Matrix4f): Matrix4f {
     return Matrix4f(this).apply { mul(other) }
 }

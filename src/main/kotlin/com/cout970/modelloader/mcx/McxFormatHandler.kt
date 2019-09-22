@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.cout970.modelloader.mcx
 
 import com.cout970.modelloader.*

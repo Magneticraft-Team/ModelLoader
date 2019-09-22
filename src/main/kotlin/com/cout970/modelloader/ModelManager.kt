@@ -1,7 +1,8 @@
 package com.cout970.modelloader
 
 import com.cout970.modelloader.api.ItemTransforms
-import com.cout970.modelloader.api.PreLoadModel
+import com.cout970.modelloader.api.ModelConfig
+import com.cout970.modelloader.api.ModelRegisterEvent
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
@@ -12,15 +13,18 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.ModelBakeEvent
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.client.model.ModelLoader
+import net.minecraftforge.fml.ModLoader
 import java.util.stream.Collectors
 
 data class PreBakeModel(
-    val pre: PreLoadModel,
+    val modelId: ModelResourceLocation,
+    val pre: ModelConfig,
     val unbaked: IUnbakedModel
 )
 
 data class PostBakeModel(
-    val pre: PreLoadModel,
+    val modelId: ModelResourceLocation,
+    val pre: ModelConfig,
     val baked: IBakedModel?
 )
 
@@ -29,26 +33,30 @@ interface IItemTransformable {
 }
 
 object ModelManager {
-    private val registeredModels = mutableListOf<PreLoadModel>()
+    private val registeredModels = mutableMapOf<ModelResourceLocation, ModelConfig>()
     private var textureToRegister: Set<ResourceLocation>? = null
     private var modelsToBake: List<PreBakeModel>? = null
     private var loadedModels: Map<ModelResourceLocation, PostBakeModel> = emptyMap()
 
-    fun register(pre: PreLoadModel) {
-        registeredModels += pre
+    fun register(modelId: ModelResourceLocation, pre: ModelConfig) {
+        registeredModels[modelId] = pre
     }
 
     fun loadModelFiles(resourceManager: IResourceManager) {
+        ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
+
         // Load model from disk
         val cache = if (Config.useMultithreading.get()) {
-            registeredModels.parallelStream()
+            registeredModels.values
+                .parallelStream()
                 .map { it.location }
                 .distinct()
                 .map { it to ModelFormatRegistry.loadUnbakedModel(resourceManager, it) }
                 .collect(Collectors.toList())
                 .toMap()
         } else {
-            registeredModels.asSequence()
+            registeredModels.values
+                .asSequence()
                 .map { it.location }
                 .distinct()
                 .map { it to ModelFormatRegistry.loadUnbakedModel(resourceManager, it) }
@@ -59,7 +67,7 @@ object ModelManager {
         val models = mutableListOf<PreBakeModel>()
         val errors = mutableSetOf<String>()
 
-        registeredModels.forEach { pre ->
+        registeredModels.forEach { (modelId, pre) ->
             // If the same model appears twice it gets loaded only once
             // and here it gets shared to all registered models with the same location
             val model = cache[pre.location] ?: return@forEach
@@ -70,8 +78,8 @@ object ModelManager {
             }
 
             // Allow to alter the model before it gets baked
-            val finalModel = pre.preBake?.invoke(pre.modelId, model) ?: model
-            models += PreBakeModel(pre, finalModel)
+            val finalModel = pre.preBake?.invoke(modelId, model) ?: model
+            models += PreBakeModel(modelId, pre, finalModel)
         }
 
         // Print texture errors
@@ -106,28 +114,29 @@ object ModelManager {
             modelsToBake.map { processModel(it, event.modelLoader) }
         }
 
-        loadedModels = bakedModels.map { it.pre.modelId to it }.toMap()
+        loadedModels = bakedModels.map { it.modelId to it }.toMap()
 
         // Register baked models
-        bakedModels.forEach { (pre, bakedModel) ->
+        bakedModels.forEach { (modelId, pre, bakedModel) ->
             // Ignore null models
             bakedModel ?: return@forEach
 
-            if(bakedModel is IItemTransformable){
+            // Set item transformation for gui, ground, etc
+            if (bakedModel is IItemTransformable) {
                 bakedModel.setItemTransforms(pre.itemTransforms)
             }
 
             // Allow to alter the model after it gets baked
-            val finalModel = pre.postBake?.invoke(pre.modelId, bakedModel) ?: bakedModel
+            val finalModel = pre.postBake?.invoke(modelId, bakedModel) ?: bakedModel
 
             // Register the model into the game, so it can be used in any block/item that uses the same model id
-            event.modelRegistry[pre.modelId] = finalModel
+            event.modelRegistry[modelId] = finalModel
         }
     }
 
     private fun processModel(model: PreBakeModel, loader: ModelLoader): PostBakeModel {
         val baked = if (model.pre.bake) bakeModel(model.unbaked, loader, model.pre.rotation) else null
-        return PostBakeModel(model.pre, baked)
+        return PostBakeModel(model.modelId, model.pre, baked)
     }
 
     fun bakeModel(model: IUnbakedModel, loader: ModelLoader, rotation: ISprite): IBakedModel? {
