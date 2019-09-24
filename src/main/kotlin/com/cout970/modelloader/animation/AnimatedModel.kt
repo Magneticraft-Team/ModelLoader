@@ -1,6 +1,7 @@
 package com.cout970.modelloader.animation
 
 import com.cout970.modelloader.*
+import com.cout970.modelloader.api.IRenderCache
 import com.mojang.blaze3d.platform.GlStateManager
 import net.minecraftforge.client.ForgeHooksClient
 import javax.vecmath.Quat4d

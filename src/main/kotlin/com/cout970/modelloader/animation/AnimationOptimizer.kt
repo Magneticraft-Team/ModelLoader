@@ -1,9 +1,9 @@
 package com.cout970.modelloader.animation
 
-import com.cout970.modelloader.ModelCache
-import com.cout970.modelloader.ModelGroupCache
 import com.cout970.modelloader.TRSTransformation
-import com.cout970.modelloader.TextureModelCache
+import com.cout970.modelloader.api.ModelCache
+import com.cout970.modelloader.api.ModelGroupCache
+import com.cout970.modelloader.api.TextureModelCache
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
