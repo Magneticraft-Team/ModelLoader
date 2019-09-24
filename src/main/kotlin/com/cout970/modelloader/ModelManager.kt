@@ -3,6 +3,7 @@ package com.cout970.modelloader
 import com.cout970.modelloader.api.ItemTransforms
 import com.cout970.modelloader.api.ModelConfig
 import com.cout970.modelloader.api.ModelRegisterEvent
+import com.cout970.modelloader.api.ModelRetrieveEvent
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
@@ -41,6 +42,8 @@ object ModelManager {
     fun register(modelId: ModelResourceLocation, pre: ModelConfig) {
         registeredModels[modelId] = pre
     }
+
+    fun getModel(modelId: ModelResourceLocation): IBakedModel? = loadedModels[modelId]?.baked
 
     fun loadModelFiles(resourceManager: IResourceManager) {
         ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
@@ -132,6 +135,8 @@ object ModelManager {
             // Register the model into the game, so it can be used in any block/item that uses the same model id
             event.modelRegistry[modelId] = finalModel
         }
+
+        ModLoader.get().postEvent(ModelRetrieveEvent(loadedModels))
     }
 
     private fun processModel(model: PreBakeModel, loader: ModelLoader): PostBakeModel {

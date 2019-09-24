@@ -1,5 +1,7 @@
 package com.cout970.modelloader.api
 
+import com.cout970.modelloader.PostBakeModel
+import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraftforge.eventbus.api.Event
 
@@ -14,5 +16,17 @@ class ModelRegisterEvent(val map: MutableMap<ModelResourceLocation, ModelConfig>
 
     fun registerModel(modId: String, path: String, variant: String, config: ModelConfig) {
         map[ModelResourceLocation("$modId:$path#$variant")] = config
+    }
+}
+
+/**
+ * Event fired after the models are baked so a mod can retrieve their models
+ */
+class ModelRetrieveEvent(val map: Map<ModelResourceLocation, PostBakeModel>) : Event() {
+
+    fun getModel(modelId: ModelResourceLocation): IBakedModel? = map[modelId]?.baked
+
+    fun getModel(modId: String, path: String, variant: String): IBakedModel? {
+        return getModel(ModelResourceLocation("$modId:$path#$variant"))
     }
 }

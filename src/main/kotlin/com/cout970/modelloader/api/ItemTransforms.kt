@@ -27,6 +27,17 @@ data class ItemTransforms(
     fun withGround(it: ItemTransform) = copy(ground = it)
     fun withFixed(it: ItemTransform) = copy(fixed = it)
 
+    fun deepCopy() = ItemTransforms(
+        thirdPersonLeft.deepCopy(),
+        thirdPersonRight.deepCopy(),
+        firstPersonLeft.deepCopy(),
+        firstPersonRight.deepCopy(),
+        head.deepCopy(),
+        gui.deepCopy(),
+        ground.deepCopy(),
+        fixed.deepCopy()
+    )
+
     companion object {
         @JvmField
         val DEFAULT = ItemTransforms(
@@ -85,13 +96,19 @@ data class ItemTransforms(
 }
 
 data class ItemTransform(
-    var translation: Vector3f = Vector3f(),
-    var rotation: Vector3f = Vector3f(),
-    var scale: Vector3f = Vector3f(1f, 1f, 1f)
+    val translation: Vector3f = Vector3f(),
+    val rotation: Vector3f = Vector3f(),
+    val scale: Vector3f = Vector3f(1f, 1f, 1f)
 ) {
     fun toItemTransformVec3f() = ItemTransformVec3f(
         McVector3(rotation.x, rotation.y, rotation.z),
         McVector3(translation.x / 16, translation.y / 16, translation.z / 16),
         McVector3(scale.x, scale.y, scale.z)
+    )
+
+    fun deepCopy() = ItemTransform(
+        Vector3f(translation),
+        Vector3f(rotation),
+        Vector3f(scale)
     )
 }

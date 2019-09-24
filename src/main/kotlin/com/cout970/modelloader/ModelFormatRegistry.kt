@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.resources.IResourceManager
 import net.minecraft.util.ResourceLocation
+import java.io.FileNotFoundException
 import java.util.function.Function
 
 interface IFormatHandler {
@@ -26,7 +27,15 @@ object ModelFormatRegistry {
             return NullUnbakedModel
         }
 
-        return handler.loadModel(resourceManager, modelLocation)
+        return try {
+            handler.loadModel(resourceManager, modelLocation)
+        } catch (e: FileNotFoundException) {
+            ModelLoaderMod.logger.error("Error loading model $modelLocation, file not found: ${e.message}")
+            NullUnbakedModel
+        } catch (e: Exception) {
+            e.printStackTrace()
+            NullUnbakedModel
+        }
     }
 
     fun supportsExtension(extension: String): Boolean = registry.containsKey(extension)

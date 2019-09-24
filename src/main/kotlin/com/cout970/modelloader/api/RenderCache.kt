@@ -1,10 +1,14 @@
-package com.cout970.modelloader
+package com.cout970.modelloader.api
 
 import com.mojang.blaze3d.platform.GlStateManager
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import java.io.Closeable
+
+/**
+ * Created by cout970 on 2017/06/17.
+ */
 
 /**
  * Wraps a render process to avoid unnecessary calculations and gpu access overhead
@@ -15,6 +19,11 @@ interface IRenderCache : Closeable {
      * Performs the render process, or use the cache if available
      */
     fun render()
+
+    /**
+     * Renders the model without binding textures
+     */
+    fun renderUntextured() = render()
 
     /**
      * Clear cache and associated resources
@@ -60,6 +69,10 @@ class TextureModelCache(val texture: ResourceLocation, vararg val cache: IRender
         cache.forEach { it.render() }
     }
 
+    override fun renderUntextured() {
+        cache.forEach { it.renderUntextured() }
+    }
+
     override fun close() {
         cache.forEach { it.close() }
     }
@@ -72,6 +85,10 @@ class ModelGroupCache(vararg val cache: IRenderCache) : IRenderCache {
 
     override fun render() {
         cache.forEach { it.render() }
+    }
+
+    override fun renderUntextured() {
+        cache.forEach { it.renderUntextured() }
     }
 
     override fun close() {
