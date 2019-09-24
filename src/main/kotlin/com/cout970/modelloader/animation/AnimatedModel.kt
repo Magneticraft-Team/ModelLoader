@@ -39,6 +39,9 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         channels.mapNotNull { channel -> channel.keyframes.map { it.time }.max() }.max() ?: 1f
     }
 
+    /**
+     * Time is in seconds, to use ticks just divide by 20
+     */
     fun render(time: Double) {
         val localTime = (time % length.toDouble()).toFloat()
         rootNodes.forEach { renderNode(it, localTime) }
@@ -47,7 +50,7 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
     fun renderNode(node: AnimatedNode, time: Float) {
         GlStateManager.pushMatrix()
         ForgeHooksClient.multiplyCurrentGlMatrix(getTransform(node, time).matrixVec.apply { transpose() })
-        node.cache.render()
+        node.cache.renderUntextured()
         node.children.forEach { renderNode(it, time) }
         GlStateManager.popMatrix()
     }
@@ -75,7 +78,7 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
             .filter { it.type == AnimationChannelType.ROTATION }
             .fold<AnimationChannel, Quat4d?>(null) { acc, channel ->
                 val value = channel.keyframes.first().value
-                check(value is Vector3d) { "Error: rotate animation channel must use Vector4d for values, ${value::class.java} found" }
+                check(value is Vector4d) { "Error: rotate animation channel must use Vector4d for values, ${value::class.java} found" }
                 @Suppress("UNCHECKED_CAST")
                 val keyframes = channel.keyframes as List<AnimationKeyframe<Vector4d>>
                 val (prev, next) = getPrevAndNext(time, keyframes)

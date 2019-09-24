@@ -21,7 +21,7 @@ class AnimationBuilder : IAnimationBuilder {
         return this
     }
 
-    fun addTranlationChannel(target: Int, keyframes: List<AnimationKeyframe<Vector3d>>): AnimationBuilder {
+    fun addTranslationChannel(target: Int, keyframes: List<AnimationKeyframe<Vector3d>>): AnimationBuilder {
         @Suppress("UNCHECKED_CAST")
         channels += AnimationChannel(target, AnimationChannelType.TRANSLATION, keyframes as List<AnimationKeyframe<Any>>)
         return this
@@ -63,8 +63,13 @@ class AnimationBuilder : IAnimationBuilder {
 
 class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimationBuilder {
     internal val children = mutableListOf<AnimationNodeBuilder>()
-    internal val transform = TRSTransformation()
+    internal var transform = TRSTransformation()
     internal val vertices: MutableMap<ResourceLocation, MutableList<Vertex>> = mutableMapOf()
+
+    fun withTransform(t: TRSTransformation): AnimationNodeBuilder {
+        transform = t
+        return this
+    }
 
     fun withTranslation(x: Float, y: Float, z: Float): AnimationNodeBuilder {
         transform.translation.set(x.toDouble(), y.toDouble(), z.toDouble())
@@ -124,7 +129,7 @@ class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimat
                 vertices[tex] = storage
             }
 
-            VertexCollector.collect(list, storage)
+            VertexUtilities.collect(list, storage)
         }
         return this
     }
@@ -166,6 +171,6 @@ fun usageExample() {
             }
         }
         .addScaleChannel(0, listOf())
-        .addTranlationChannel(1, listOf())
+        .addTranslationChannel(1, listOf())
         .build()
 }

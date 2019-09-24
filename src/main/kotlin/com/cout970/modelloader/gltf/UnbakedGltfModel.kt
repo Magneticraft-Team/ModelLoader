@@ -1,5 +1,6 @@
 package com.cout970.modelloader.gltf
 
+import com.cout970.modelloader.animation.AnimatedModel
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelBakery
@@ -19,5 +20,13 @@ class UnbakedGltfModel(val tree: GltfTree.DefinitionTree) : IUnbakedModel {
 
     override fun getTextures(modelGetter: Function<ResourceLocation, IUnbakedModel>, missingTextureErrors: MutableSet<String>): MutableCollection<ResourceLocation> {
         return tree.textures.toMutableList()
+    }
+
+    fun getAnimations(): Map<String, AnimatedModel> {
+        var count = 0
+        return tree.animations.map {
+            val name = it.name ?: "Animation${count++}"
+            name to GltfAnimator(tree).animate(it)
+        }.toMap()
     }
 }

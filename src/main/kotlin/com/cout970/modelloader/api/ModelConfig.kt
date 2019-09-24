@@ -12,6 +12,7 @@ data class ModelConfig @JvmOverloads constructor(
     val itemTransforms: ItemTransforms = ItemTransforms.DEFAULT,
     val rotation: ModelRotation = ModelRotation.X0_Y0,
     val bake: Boolean = true,
+    val animate: Boolean = false,
     val preBake: ((ModelResourceLocation, IUnbakedModel) -> IUnbakedModel)? = null,
     val postBake: ((ModelResourceLocation, IBakedModel) -> IBakedModel)? = null
 ) {
@@ -20,6 +21,7 @@ data class ModelConfig @JvmOverloads constructor(
     fun withRotation(rotation: ModelRotation) = copy(rotation = rotation)
     fun withDirection(dir: Direction) = copy(rotation = DIRECTION_TO_ROTATION.getValue(dir))
     fun withBake(bake: Boolean) = copy(bake = bake)
+    fun withAnimation(animate: Boolean) = copy(animate = animate)
     fun withPreBake(preBake: (ModelResourceLocation, IUnbakedModel) -> IUnbakedModel) = copy(preBake = preBake)
     fun withPostBake(postBake: (ModelResourceLocation, IBakedModel) -> IBakedModel) = copy(postBake = postBake)
 

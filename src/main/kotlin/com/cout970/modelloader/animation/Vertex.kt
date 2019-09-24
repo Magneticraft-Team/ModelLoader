@@ -10,7 +10,10 @@ data class Vertex(
     val x: Float, val y: Float, val z: Float,
     val u: Float, val v: Float,
     val xn: Float, val yn: Float, val zn: Float
-)
+) {
+    constructor(x: Double, y: Double, z: Double, u: Double, v: Double, xn: Double, yn: Double, zn: Double)
+        : this(x.toFloat(), y.toFloat(), z.toFloat(), u.toFloat(), v.toFloat(), xn.toFloat(), yn.toFloat(), zn.toFloat())
+}
 
 /**
  * Group of baked quads with the same texture

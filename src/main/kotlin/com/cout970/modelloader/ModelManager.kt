@@ -1,9 +1,11 @@
 package com.cout970.modelloader
 
+import com.cout970.modelloader.animation.AnimatedModel
 import com.cout970.modelloader.api.ItemTransforms
 import com.cout970.modelloader.api.ModelConfig
 import com.cout970.modelloader.api.ModelRegisterEvent
 import com.cout970.modelloader.api.ModelRetrieveEvent
+import com.cout970.modelloader.gltf.UnbakedGltfModel
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
@@ -26,7 +28,8 @@ data class PreBakeModel(
 data class PostBakeModel(
     val modelId: ModelResourceLocation,
     val pre: ModelConfig,
-    val baked: IBakedModel?
+    val baked: IBakedModel?,
+    val animations: Map<String, AnimatedModel>
 )
 
 interface IItemTransformable {
@@ -44,6 +47,8 @@ object ModelManager {
     }
 
     fun getModel(modelId: ModelResourceLocation): IBakedModel? = loadedModels[modelId]?.baked
+
+    fun getAnimations(modelId: ModelResourceLocation): Map<String, AnimatedModel> = loadedModels[modelId]?.animations ?: emptyMap()
 
     fun loadModelFiles(resourceManager: IResourceManager) {
         ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
@@ -140,8 +145,15 @@ object ModelManager {
     }
 
     private fun processModel(model: PreBakeModel, loader: ModelLoader): PostBakeModel {
-        val baked = if (model.pre.bake) bakeModel(model.unbaked, loader, model.pre.rotation) else null
-        return PostBakeModel(model.modelId, model.pre, baked)
+        val baked = when {
+            model.pre.bake -> bakeModel(model.unbaked, loader, model.pre.rotation)
+            else -> null
+        }
+        val animations = when {
+            model.pre.animate && model.unbaked is UnbakedGltfModel -> model.unbaked.getAnimations()
+            else -> emptyMap()
+        }
+        return PostBakeModel(model.modelId, model.pre, baked, animations)
     }
 
     fun bakeModel(model: IUnbakedModel, loader: ModelLoader, rotation: ISprite): IBakedModel? {

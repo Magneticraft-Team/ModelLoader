@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.texture.AtlasTexture
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.Direction
 import net.minecraft.util.math.Vec3d
+import net.minecraft.world.World
 import net.minecraftforge.client.model.data.EmptyModelData
 import org.lwjgl.opengl.GL11
 import java.util.*
@@ -27,6 +28,12 @@ object Utilities {
     @JvmField
     val WEST_ROTATION = Vec3d(0.0, 0.0, 90.0)
 
+    @JvmStatic
+    fun worldTime(world: World, partialTicks: Float): Float{
+        return (world.gameTime and 0xFFFF).toInt().toFloat() + partialTicks
+    }
+
+    @JvmStatic
     fun saveMatrix(func: () -> Unit) {
         GlStateManager.pushMatrix()
         func()

@@ -60,12 +60,8 @@ class ModelCache(val renderFunc: () -> Unit) : IRenderCache {
  */
 class TextureModelCache(val texture: ResourceLocation, vararg val cache: IRenderCache) : IRenderCache {
 
-    var enableTexture: Boolean = true
-
     override fun render() {
-        if (enableTexture) {
-            Minecraft.getInstance().textureManager.bindTexture(texture)
-        }
+        Minecraft.getInstance().textureManager.bindTexture(texture)
         cache.forEach { it.render() }
     }
 
