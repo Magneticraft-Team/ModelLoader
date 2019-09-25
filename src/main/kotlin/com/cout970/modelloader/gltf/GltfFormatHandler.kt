@@ -2,11 +2,8 @@
 
 package com.cout970.modelloader.gltf
 
-import com.cout970.modelloader.IFormatHandler
-import com.cout970.modelloader.ModelLoaderMod
-import com.cout970.modelloader.TRSTransformation
+import com.cout970.modelloader.*
 import com.cout970.modelloader.animation.*
-import com.cout970.modelloader.toTRS
 import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ItemCameraTransforms
@@ -18,10 +15,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.model.ModelLoader
 import java.io.InputStream
 import java.util.function.Function
-import javax.vecmath.Point3f
-import javax.vecmath.Vector2d
-import javax.vecmath.Vector3d
-import javax.vecmath.Vector4d
+import javax.vecmath.*
 
 object GltfFormatHandler : IFormatHandler {
 
@@ -47,43 +41,60 @@ internal class GltfAnimator(
     val getSprite: Function<ResourceLocation, TextureAtlasSprite>? = ModelLoader.defaultTextureGetter()
 ) {
 
+    val nodeMap = mutableMapOf<Int, GltfTree.Node>()
+
     fun animate(animation: GltfTree.Animation) = AnimationBuilder().apply {
         animation.channels.forEach { channel ->
+            val scene = tree.scenes[tree.scene]
+            scene.nodes.forEach {
+                createNode(it.index) { newNode(it, TRSTransformation()) }
+            }
+
             when (channel.path) {
                 GltfChannelPath.translation -> {
+                    val base = nodeMap[channel.node]?.transform?.translation ?: Vector3d()
                     addTranslationChannel(channel.node, channel.times.zip(channel.values).map {
-                        AnimationKeyframe(it.first, it.second as Vector3d)
+                        AnimationKeyframe(it.first, (it.second as Vector3d) - base)
                     })
                 }
                 GltfChannelPath.rotation -> {
+                    val baseRot = nodeMap[channel.node]?.transform?.rotation ?: Quat4d(0.0, 0.0, 0.0, 1.0)
+                    if (baseRot.w == 0.0) baseRot.w = 1.0
+                    baseRot.inverse()
                     addRotationChannel(channel.node, channel.times.zip(channel.values).map {
-                        AnimationKeyframe(it.first, it.second as Vector4d)
+                        val a = it.second as Vector4d
+                        val b = Quat4d(a.x, a.y, a.z, a.w)
+                        b.mulInverse(baseRot)
+                        AnimationKeyframe(it.first, Vector4d(b.x, b.y, b.z, b.w))
                     })
                 }
                 GltfChannelPath.scale -> {
+                    val base = nodeMap[channel.node]?.transform?.scale ?: Vector3d(1.0, 1.0, 1.0)
                     addScaleChannel(channel.node, channel.times.zip(channel.values).map {
-                        AnimationKeyframe(it.first, it.second as Vector3d)
+                        AnimationKeyframe(it.first, (it.second as Vector3d) / base)
                     })
                 }
                 GltfChannelPath.weights -> error("Unsupported")
             }
         }
-
-        val scene = tree.scenes[tree.scene]
-        scene.nodes.forEach {
-            createNode(it.index) { newNode(it, TRSTransformation()) }
-        }
     }.build()
 
     fun AnimationNodeBuilder.newNode(node: GltfTree.Node, transform: TRSTransformation) {
-        val globalTransform = node.transform + transform
+        nodeMap[node.index] = node
         node.children.forEach {
-            createChildren(it.index) { newNode(it, globalTransform) }
+            createChildren(it.index) { newNode(it, TRSTransformation()) }
+        }
+        if (node.children.isNotEmpty()) {
+            withTransform(node.transform)
         }
 
-        withTransform(node.transform)
         val mesh = node.mesh ?: return
-        withVertices(mesh.primitives.mapNotNull {it.toVertexGroup(globalTransform) })
+        withVertices(mesh.primitives.mapNotNull {
+            val material = it.material ?: ModelLoaderMod.defaultModelTexture
+            val sprite: TextureAtlasSprite? = ModelLoader.defaultTextureGetter().apply(material)
+
+            it.toVertexGroup(node.transform, sprite)
+        })
     }
 }
 
@@ -125,7 +136,7 @@ internal class GltfBaker(
 
         mesh.primitives.forEach { prim ->
             val sprite = bakedTextureGetter.apply(prim.material ?: ModelLoaderMod.defaultModelTexture)
-            val group = prim.toVertexGroup(globalTransform) ?: return@forEach
+            val group = prim.toVertexGroup(globalTransform, null) ?: return@forEach
 
             quads += VertexUtilities.bakedVertices(format, sprite, group.vertex)
         }
@@ -134,7 +145,7 @@ internal class GltfBaker(
     }
 }
 
-private fun GltfTree.Primitive.toVertexGroup(globalTransform: TRSTransformation): VertexGroup? {
+private fun GltfTree.Primitive.toVertexGroup(globalTransform: TRSTransformation, sprite: TextureAtlasSprite?): VertexGroup? {
     if (mode != GltfMode.TRIANGLES && mode != GltfMode.QUADS) {
         ModelLoaderMod.logger.warn("Found primitive with unsupported mode: ${mode}, ignoring")
         return null
@@ -179,7 +190,7 @@ private fun GltfTree.Primitive.toVertexGroup(globalTransform: TRSTransformation)
     val vertex = mutableListOf<Vertex>()
 
     VertexUtilities.collect(
-        CompactModelData(indices, newPos, tex, newPos.size, mode != GltfMode.QUADS), vertex
+        CompactModelData(indices, newPos, tex, newPos.size, mode != GltfMode.QUADS), sprite, vertex
     )
     return VertexGroup(texture, vertex)
 }

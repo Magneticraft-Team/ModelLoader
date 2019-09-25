@@ -49,7 +49,8 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
 
     fun renderNode(node: AnimatedNode, time: Float) {
         GlStateManager.pushMatrix()
-        ForgeHooksClient.multiplyCurrentGlMatrix(getTransform(node, time).matrixVec.apply { transpose() })
+        val matrix = getTransform(node, time).matrixVec.apply { transpose() }
+        ForgeHooksClient.multiplyCurrentGlMatrix(matrix)
         node.cache.renderUntextured()
         node.children.forEach { renderNode(it, time) }
         GlStateManager.popMatrix()

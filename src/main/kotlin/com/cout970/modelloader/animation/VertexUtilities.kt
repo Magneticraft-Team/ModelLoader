@@ -53,27 +53,27 @@ object VertexUtilities {
         }
     }
 
-    fun collect(model: ICompactModelData, storage: MutableList<Vertex>) {
+    fun collect(model: ICompactModelData, sprite: TextureAtlasSprite?, storage: MutableList<Vertex>) {
         val indices = model.indices
 
         if (indices != null) {
             if (model.triangles) {
                 repeat(model.count / 3) {
-                    collectQuadFromTriangleIndexed(it * 3, indices, model.pos, model.tex, storage)
+                    collectQuadFromTriangleIndexed(it * 3, indices, model.pos, model.tex, sprite, storage)
                 }
             } else {
                 repeat(model.count / 4) {
-                    collectQuadIndexed(it * 4, indices, model.pos, model.tex, storage)
+                    collectQuadIndexed(it * 4, indices, model.pos, model.tex, sprite, storage)
                 }
             }
         } else {
             if (model.triangles) {
                 repeat(model.count / 3) {
-                    collectQuadFromTriangle(it * 3, model.pos, model.tex, storage)
+                    collectQuadFromTriangle(it * 3, model.pos, model.tex, sprite, storage)
                 }
             } else {
                 repeat(model.count / 4) {
-                    collectQuad(it * 4, model.pos, model.tex, storage)
+                    collectQuad(it * 4, model.pos, model.tex, sprite, storage)
                 }
             }
         }
@@ -124,17 +124,18 @@ object VertexUtilities {
         }
     }
 
-    fun collectQuadIndexed(index: Int, indices: List<Int>, pos: List<Vector3d>, tex: List<Vector2d>,  result: MutableList<Vertex>) {
+    fun collectQuadIndexed(index: Int, indices: List<Int>, pos: List<Vector3d>, tex: List<Vector2d>,
+                           sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
         val a = pos[indices[index + 0]]
         val b = pos[indices[index + 1]]
         val c = pos[indices[index + 2]]
         val d = pos[indices[index + 3]]
 
-        val at = tex.getOrNull(indices[index + 0]) ?: Vector2d()
-        val bt = tex.getOrNull(indices[index + 1]) ?: Vector2d()
-        val ct = tex.getOrNull(indices[index + 2]) ?: Vector2d()
-        val dt = tex.getOrNull(indices[index + 3]) ?: Vector2d()
+        val at = tex.getOrNull(indices[index + 0]).applySprite(sprite)
+        val bt = tex.getOrNull(indices[index + 1]).applySprite(sprite)
+        val ct = tex.getOrNull(indices[index + 2]).applySprite(sprite)
+        val dt = tex.getOrNull(indices[index + 3]).applySprite(sprite)
 
         val ac = c - a
         val bd = d - b
@@ -149,15 +150,16 @@ object VertexUtilities {
         result += vertexOf(d, dt, normal)
     }
 
-    fun collectQuadFromTriangleIndexed(index: Int, indices: List<Int>, pos: List<Vector3d>, tex: List<Vector2d>, result: MutableList<Vertex>) {
+    fun collectQuadFromTriangleIndexed(index: Int, indices: List<Int>, pos: List<Vector3d>, tex: List<Vector2d>,
+                                       sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
         val a = pos[indices[index + 0]]
         val b = pos[indices[index + 1]]
         val c = pos[indices[index + 2]]
 
-        val at = tex.getOrNull(indices[index + 0]) ?: Vector2d()
-        val bt = tex.getOrNull(indices[index + 1]) ?: Vector2d()
-        val ct = tex.getOrNull(indices[index + 2]) ?: Vector2d()
+        val at = tex.getOrNull(indices[index + 0]) ?: Vector2d() // .applySprite(sprite)
+        val bt = tex.getOrNull(indices[index + 1]) ?: Vector2d() // .applySprite(sprite)
+        val ct = tex.getOrNull(indices[index + 2]) ?: Vector2d() // .applySprite(sprite)
 
         val ac = c - a
         val ab = b - a
@@ -172,17 +174,18 @@ object VertexUtilities {
         result += vertexOf(c, ct, normal)
     }
 
-    fun collectQuad(index: Int, pos: List<Vector3d>, tex: List<Vector2d>,result: MutableList<Vertex>) {
+    fun collectQuad(index: Int, pos: List<Vector3d>, tex: List<Vector2d>,
+                    sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
         val a = pos[index + 0]
         val b = pos[index + 1]
         val c = pos[index + 2]
         val d = pos[index + 3]
 
-        val at = tex.getOrNull(index + 0) ?: Vector2d()
-        val bt = tex.getOrNull(index + 1) ?: Vector2d()
-        val ct = tex.getOrNull(index + 2) ?: Vector2d()
-        val dt = tex.getOrNull(index + 3) ?: Vector2d()
+        val at = tex.getOrNull(index + 0).applySprite(sprite)
+        val bt = tex.getOrNull(index + 1).applySprite(sprite)
+        val ct = tex.getOrNull(index + 2).applySprite(sprite)
+        val dt = tex.getOrNull(index + 3).applySprite(sprite)
 
         val ac = c - a
         val bd = d - b
@@ -197,15 +200,16 @@ object VertexUtilities {
         result += vertexOf(d, dt, normal)
     }
 
-    fun collectQuadFromTriangle(index: Int, pos: List<Vector3d>, tex: List<Vector2d>, result: MutableList<Vertex>) {
+    fun collectQuadFromTriangle(index: Int, pos: List<Vector3d>, tex: List<Vector2d>,
+                                sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
         val a = pos[index + 0]
         val b = pos[index + 1]
         val c = pos[index + 2]
 
-        val at = tex.getOrNull(index + 0) ?: Vector2d()
-        val bt = tex.getOrNull(index + 1) ?: Vector2d()
-        val ct = tex.getOrNull(index + 2) ?: Vector2d()
+        val at = tex.getOrNull(index + 0).applySprite(sprite)
+        val bt = tex.getOrNull(index + 1).applySprite(sprite)
+        val ct = tex.getOrNull(index + 2).applySprite(sprite)
 
         val ac = c - a
         val ab = b - a
@@ -225,4 +229,17 @@ object VertexUtilities {
         uv.x.toFloat(), uv.y.toFloat(),
         normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()
     )
+
+    fun Vector2d?.applySprite(sprite: TextureAtlasSprite?): Vector2d {
+        this ?: return Vector2d()
+
+        return when {
+            sprite != null -> {
+                val u = sprite.getInterpolatedU(this.x * 16.0).toDouble()
+                val v = sprite.getInterpolatedV(this.y * 16.0).toDouble()
+                Vector2d(u, v)
+            }
+            else -> this
+        }
+    }
 }

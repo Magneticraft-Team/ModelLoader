@@ -105,6 +105,10 @@ internal operator fun Vector3d.times(other: Vector3d): Vector3d {
     return Vector3d(this).apply { scale(1.0, other) }
 }
 
+internal operator fun Vector3d.div(other: Vector3d): Vector3d {
+    return Vector3d(this.x / other.x, this.y / other.y, this.z / other.z)
+}
+
 internal fun Vector3d.norm(): Vector3d {
     return Vector3d(this).apply { normalize() }
 }

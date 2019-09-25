@@ -136,12 +136,12 @@ class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimat
 
     @JvmOverloads
     fun createChildren(id: Int = -1): AnimationNodeBuilder {
-        return AnimationNodeBuilder(id, parent)
+        return AnimationNodeBuilder(id, this)
     }
 
     @JvmOverloads
     fun createChildren(id: Int = -1, func: AnimationNodeBuilder.() -> Unit): AnimationNodeBuilder {
-        AnimationNodeBuilder(id, parent).apply(func).finish()
+        AnimationNodeBuilder(id, this).apply(func).finish()
         return this
     }
 
