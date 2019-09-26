@@ -34,6 +34,7 @@ data class PostBakeModel(
 
 interface IItemTransformable {
     fun setItemTransforms(it: ItemTransforms)
+    fun setHasItemRenderer(hasItemRenderer: Boolean)
 }
 
 object ModelManager {
@@ -48,10 +49,15 @@ object ModelManager {
 
     fun getModel(modelId: ModelResourceLocation): IBakedModel? = loadedModels[modelId]?.baked
 
-    fun getAnimations(modelId: ModelResourceLocation): Map<String, AnimatedModel> = loadedModels[modelId]?.animations ?: emptyMap()
+    fun getAnimations(modelId: ModelResourceLocation): Map<String, AnimatedModel> = loadedModels[modelId]?.animations
+        ?: emptyMap()
 
     fun loadModelFiles(resourceManager: IResourceManager) {
-        ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
+        try {
+            ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
+        } catch (e: Exception) {
+            ModelLoaderMod.logger.error("Error in ModelRegisterEvent, some models may be missing, check the log for details")
+        }
 
         // Load model from disk
         val cache = if (Config.useMultithreading.get()) {
@@ -132,6 +138,7 @@ object ModelManager {
             // Set item transformation for gui, ground, etc
             if (bakedModel is IItemTransformable) {
                 bakedModel.setItemTransforms(pre.itemTransforms)
+                bakedModel.setHasItemRenderer(pre.itemRenderer)
             }
 
             // Allow to alter the model after it gets baked
@@ -141,7 +148,11 @@ object ModelManager {
             event.modelRegistry[modelId] = finalModel
         }
 
-        ModLoader.get().postEvent(ModelRetrieveEvent(loadedModels))
+        try {
+            ModLoader.get().postEvent(ModelRetrieveEvent(loadedModels))
+        } catch (e: Exception) {
+            ModelLoaderMod.logger.error("Error in ModelRetrieveEvent, some models may be missing, check the log for details")
+        }
     }
 
     private fun processModel(model: PreBakeModel, loader: ModelLoader): PostBakeModel {

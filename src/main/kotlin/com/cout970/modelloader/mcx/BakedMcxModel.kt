@@ -20,6 +20,9 @@ class BakedMcxModel(
     quads: List<BakedQuad>
 ) : IBakedModel, IItemTransformable {
 
+    var hasItemRenderer: Boolean = false
+        private set
+
     val bakedQuads: MutableMap<Direction?, MutableList<BakedQuad>> = modelData.parts
         .groupBy { it.side }
         .mapValues { entry ->
@@ -32,7 +35,7 @@ class BakedMcxModel(
         return bakedQuads[side] ?: emptyList()
     }
 
-    override fun isBuiltInRenderer(): Boolean = false
+    override fun isBuiltInRenderer(): Boolean = hasItemRenderer
 
     override fun isAmbientOcclusion(): Boolean = modelData.useAmbientOcclusion
 
@@ -42,6 +45,10 @@ class BakedMcxModel(
 
     override fun getItemCameraTransforms(): ItemCameraTransforms {
         return itemTransform
+    }
+
+    override fun setHasItemRenderer(hasItemRenderer: Boolean) {
+        this.hasItemRenderer = hasItemRenderer
     }
 
     override fun setItemTransforms(it: ItemTransforms) {

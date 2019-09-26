@@ -157,9 +157,9 @@ object VertexUtilities {
         val b = pos[indices[index + 1]]
         val c = pos[indices[index + 2]]
 
-        val at = tex.getOrNull(indices[index + 0]) ?: Vector2d() // .applySprite(sprite)
-        val bt = tex.getOrNull(indices[index + 1]) ?: Vector2d() // .applySprite(sprite)
-        val ct = tex.getOrNull(indices[index + 2]) ?: Vector2d() // .applySprite(sprite)
+        val at = tex.getOrNull(indices[index + 0]).applySprite(sprite)
+        val bt = tex.getOrNull(indices[index + 1]).applySprite(sprite)
+        val ct = tex.getOrNull(indices[index + 2]).applySprite(sprite)
 
         val ac = c - a
         val ab = b - a

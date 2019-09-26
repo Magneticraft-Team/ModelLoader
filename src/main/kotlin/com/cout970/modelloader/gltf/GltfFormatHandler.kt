@@ -91,10 +91,14 @@ internal class GltfAnimator(
         val mesh = node.mesh ?: return
         withVertices(mesh.primitives.mapNotNull {
             val material = it.material ?: ModelLoaderMod.defaultModelTexture
-            val sprite: TextureAtlasSprite? = ModelLoader.defaultTextureGetter().apply(material)
 
-            it.toVertexGroup(node.transform, sprite)
+            val group = it.toVertexGroup(node.transform, null) ?: return@mapNotNull null
+            group.copy(texture = locationToFile(material))
         })
+    }
+
+    fun locationToFile(res: ResourceLocation): ResourceLocation {
+        return ResourceLocation(res.namespace, "textures/${res.path}.png")
     }
 }
 

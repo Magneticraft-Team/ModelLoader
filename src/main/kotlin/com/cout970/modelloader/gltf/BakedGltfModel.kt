@@ -15,7 +15,10 @@ class BakedGltfModel(
     val quads: List<BakedQuad>,
     val particle: TextureAtlasSprite,
     var itemTransform: ItemCameraTransforms
-): IBakedModel, IItemTransformable {
+) : IBakedModel, IItemTransformable {
+
+    var hasItemRenderer: Boolean = false
+        private set
 
     override fun getParticleTexture(): TextureAtlasSprite = particle
 
@@ -23,13 +26,17 @@ class BakedGltfModel(
 
     override fun getOverrides(): ItemOverrideList = ItemOverrideList.EMPTY
 
-    override fun isBuiltInRenderer(): Boolean = false
+    override fun isBuiltInRenderer(): Boolean = hasItemRenderer
 
     override fun isAmbientOcclusion(): Boolean = true
 
     override fun isGui3d(): Boolean = true
 
     override fun getItemCameraTransforms(): ItemCameraTransforms = itemTransform
+
+    override fun setHasItemRenderer(hasItemRenderer: Boolean) {
+        this.hasItemRenderer = hasItemRenderer
+    }
 
     override fun setItemTransforms(it: ItemTransforms) {
         itemTransform = it.toItemCameraTransforms()

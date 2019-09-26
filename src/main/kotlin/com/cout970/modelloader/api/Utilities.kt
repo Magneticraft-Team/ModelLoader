@@ -1,13 +1,14 @@
 package com.cout970.modelloader.api
 
 import com.mojang.blaze3d.platform.GlStateManager
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.texture.AtlasTexture
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.Direction
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.Vec3d
-import net.minecraft.world.World
 import net.minecraftforge.client.model.data.EmptyModelData
 import org.lwjgl.opengl.GL11
 import java.util.*
@@ -29,8 +30,19 @@ object Utilities {
     val WEST_ROTATION = Vec3d(0.0, 0.0, 90.0)
 
     @JvmStatic
-    fun worldTime(world: World, partialTicks: Float): Float{
-        return (world.gameTime and 0xFFFF).toInt().toFloat() + partialTicks
+    fun bindTexture(tex: ResourceLocation) {
+        Minecraft.getInstance().textureManager.bindTexture(tex)
+    }
+
+    @JvmStatic
+    fun getPartialTicks(): Float {
+        return Minecraft.getInstance().renderPartialTicks
+    }
+
+    @JvmStatic
+    fun worldTime(): Float {
+        val world = Minecraft.getInstance().world
+        return (world.gameTime and 0xFFFF).toInt().toFloat() + getPartialTicks()
     }
 
     @JvmStatic

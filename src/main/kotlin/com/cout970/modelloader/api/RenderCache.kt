@@ -1,7 +1,6 @@
 package com.cout970.modelloader.api
 
 import com.mojang.blaze3d.platform.GlStateManager
-import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import java.io.Closeable
@@ -61,7 +60,7 @@ class ModelCache(val renderFunc: () -> Unit) : IRenderCache {
 class TextureModelCache(val texture: ResourceLocation, vararg val cache: IRenderCache) : IRenderCache {
 
     override fun render() {
-        Minecraft.getInstance().textureManager.bindTexture(texture)
+        Utilities.bindTexture(texture)
         cache.forEach { it.render() }
     }
 
