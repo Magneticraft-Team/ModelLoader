@@ -68,7 +68,7 @@ and several binary files to store heavy model parts like vertices,
 UV coordinates, keyframes, etc. This combination make the model
 mostly human readable while keeping the models small.
 
-Only of the main reasons to supports this format, apart from 
+One of the main reasons to supports this format, apart from 
 the great adoption by 3D tools, is the fact that allows animations.
 Currently this library supports keyframe animations with translation,
 rotation and scale channels. The format also allows skeletal 
@@ -77,6 +77,11 @@ write a issue.
 
 There are several editors that support this format like blender 
 or my own [Modeler](https://github.com/cout970/Modeler).
+
+There is also a Animation builder if you want to create your 
+animations in code. Every animated model is made of nodes and 
+each node has a transformation thar you can edit to animate 
+it manually 
 
 ### MCX
 MCX is simple json format, with similar structure to obj, but 

@@ -17,7 +17,7 @@ import javax.vecmath.Vector4d
  */
 data class AnimatedNode(
     val index: Int,
-    val transform: TRSTransformation,
+    var transform: TRSTransformation,
     val children: List<AnimatedNode>,
     val cache: IRenderCache
 ) {
