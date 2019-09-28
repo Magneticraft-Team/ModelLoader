@@ -20,7 +20,12 @@ data class AnimatedNode(
     val transform: TRSTransformation,
     val children: List<AnimatedNode>,
     val cache: IRenderCache
-)
+) {
+    fun close() {
+        children.forEach(AnimatedNode::close)
+        cache.close()
+    }
+}
 
 /**
  * A channel of the animation
@@ -186,5 +191,12 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         val prev = keyframes.lastOrNull { it.time <= time } ?: keyframes.last()
 
         return prev to next
+    }
+
+    /**
+     * Frees the GPU memory used by the model
+     */
+    fun close() {
+        rootNodes.forEach { it.close() }
     }
 }

@@ -51,6 +51,7 @@ interface IItemTransformable {
  */
 object ModelManager {
     private val registeredModels = mutableMapOf<ModelResourceLocation, ModelConfig>()
+    private val sharedModels = mutableMapOf<ModelResourceLocation, ModelResourceLocation>()
     private var textureToRegister: Set<ResourceLocation>? = null
     private var modelsToBake: List<PreBakeModel>? = null
     private var loadedModels: Map<ModelResourceLocation, PostBakeModel> = emptyMap()
@@ -58,6 +59,11 @@ object ModelManager {
     @JvmStatic
     fun register(modelId: ModelResourceLocation, pre: ModelConfig) {
         registeredModels[modelId] = pre
+    }
+
+    @JvmStatic
+    fun share(origin: ModelResourceLocation, destine: ModelResourceLocation) {
+        sharedModels[destine] = origin
     }
 
     @JvmStatic
@@ -75,7 +81,7 @@ object ModelManager {
      */
     fun loadModelFiles(resourceManager: IResourceManager) {
         try {
-            ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
+            ModLoader.get().postEvent(ModelRegisterEvent(registeredModels, sharedModels))
         } catch (e: Exception) {
             ModelLoaderMod.logger.error("Error in ModelRegisterEvent, some models may be missing, check the log for details")
         }
@@ -173,6 +179,16 @@ object ModelManager {
 
             // Register the model into the game, so it can be used in any block/item that uses the same model id
             event.modelRegistry[modelId] = finalModel
+        }
+
+        // Share models
+        sharedModels.forEach { (destine, origin) ->
+            val model = event.modelRegistry[origin]
+            if (model != null) {
+                event.modelRegistry[destine] = model
+            }else{
+                ModelLoaderMod.logger.error("Unable to share model $origin, it doesn't exist")
+            }
         }
 
         try {

@@ -9,7 +9,10 @@ import net.minecraftforge.eventbus.api.Event
 /**
  * Event fired when the models are loaded (startup and reload) so a mod can register their models
  */
-class ModelRegisterEvent(val map: MutableMap<ModelResourceLocation, ModelConfig>) : Event() {
+class ModelRegisterEvent(
+    val map: MutableMap<ModelResourceLocation, ModelConfig>,
+    val sharedMap: MutableMap<ModelResourceLocation, ModelResourceLocation>
+) : Event() {
 
     /**
      * Registers a model to be loaded
@@ -23,6 +26,23 @@ class ModelRegisterEvent(val map: MutableMap<ModelResourceLocation, ModelConfig>
      */
     fun registerModel(modId: String, path: String, variant: String, config: ModelConfig) {
         map[ModelResourceLocation("$modId:$path#$variant")] = config
+    }
+
+    /**
+     * Reuses a registered model for another model id
+     */
+    fun shareModel(originModId: String, originPath: String, originVariant: String, destineModId: String, destinePath: String, destineVariant: String) {
+        shareModel(
+            ModelResourceLocation("$originModId:$originPath#$originVariant"),
+            ModelResourceLocation("$destineModId:$destinePath#$destineVariant")
+        )
+    }
+
+    /**
+     * Reuses a registered model for another model id
+     */
+    fun shareModel(origin: ModelResourceLocation, destine: ModelResourceLocation) {
+        sharedMap[destine] = origin
     }
 }
 

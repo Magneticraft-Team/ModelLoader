@@ -51,6 +51,8 @@ object Utilities {
     /**
      * Time of the world with partial ticks,
      * it wraps so it can be used for animations and don't generate numbers too big
+     *
+     * Every 65535 ticks the value gets reset to 0
      */
     @JvmStatic
     fun worldTime(): Float {
