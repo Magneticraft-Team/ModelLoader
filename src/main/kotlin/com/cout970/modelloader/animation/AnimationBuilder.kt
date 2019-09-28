@@ -1,16 +1,22 @@
 package com.cout970.modelloader.animation
 
-import com.cout970.modelloader.TRSTransformation
+import com.cout970.modelloader.api.TRSTransformation
 import net.minecraft.util.ResourceLocation
 import javax.vecmath.AxisAngle4d
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import javax.vecmath.Vector4d
 
+/**
+ * Builder that accepts sub-AnimationNodeBuilders
+ */
 interface IAnimationBuilder {
     fun add(node: AnimationNodeBuilder)
 }
 
+/**
+ * Allows to create animation models
+ */
 class AnimationBuilder : IAnimationBuilder {
     private val rootNodes = mutableListOf<AnimationNodeBuilder>()
     private val channels = mutableListOf<AnimationChannel>()
@@ -61,6 +67,9 @@ class AnimationBuilder : IAnimationBuilder {
     }
 }
 
+/**
+ * Builds a sinlge node for an animated model
+ */
 class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimationBuilder {
     internal val children = mutableListOf<AnimationNodeBuilder>()
     internal var transform = TRSTransformation()
@@ -154,23 +163,24 @@ class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimat
     }
 }
 
-fun usageExample() {
-    AnimationBuilder()
-        .createNode(0) {
-            withTranslation(0f, 1f, 0f)
-            withVertices(listOf())
-        }
-        .createNode() {
-            withTranslation(1f, 0f, 0f)
-            withVertices(listOf())
-
-            createChildren(1) {
-                withTranslation(1f, 0f, 0f)
-                withVertices(listOf())
-                finish()
-            }
-        }
-        .addScaleChannel(0, listOf())
-        .addTranslationChannel(1, listOf())
-        .build()
-}
+// Example usege from Kotlin
+//fun usageExample() {
+//    AnimationBuilder()
+//        .createNode(0) {
+//            withTranslation(0f, 1f, 0f)
+//            withVertices(listOf())
+//        }
+//        .createNode() {
+//            withTranslation(1f, 0f, 0f)
+//            withVertices(listOf())
+//
+//            createChildren(1) {
+//                withTranslation(1f, 0f, 0f)
+//                withVertices(listOf())
+//                finish()
+//            }
+//        }
+//        .addScaleChannel(0, listOf())
+//        .addTranslationChannel(1, listOf())
+//        .build()
+//}

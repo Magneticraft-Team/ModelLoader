@@ -13,6 +13,9 @@ import net.minecraftforge.client.model.data.EmptyModelData
 import org.lwjgl.opengl.GL11
 import java.util.*
 
+/**
+ * Several utilities for rendering stuff
+ */
 object Utilities {
     @JvmField
     val BLOCK_CENTER = Vec3d(0.5, 0.5, 0.5)
@@ -29,34 +32,58 @@ object Utilities {
     @JvmField
     val WEST_ROTATION = Vec3d(0.0, 0.0, 90.0)
 
+    /**
+     * Binds a texture to be used in the next models to render
+     */
     @JvmStatic
     fun bindTexture(tex: ResourceLocation) {
         Minecraft.getInstance().textureManager.bindTexture(tex)
     }
 
+    /**
+     * Gets the time since the last client tick, the value is between 0 and 1
+     */
     @JvmStatic
     fun getPartialTicks(): Float {
         return Minecraft.getInstance().renderPartialTicks
     }
 
+    /**
+     * Time of the world with partial ticks,
+     * it wraps so it can be used for animations and don't generate numbers too big
+     */
     @JvmStatic
     fun worldTime(): Float {
         val world = Minecraft.getInstance().world
         return (world.gameTime and 0xFFFF).toInt().toFloat() + getPartialTicks()
     }
 
-    @JvmStatic
-    fun saveMatrix(func: () -> Unit) {
+    /**
+     * Runs code that modifies the OpenGL matrix and restores the original value at the end
+     */
+    inline fun saveMatrix(func: () -> Unit) {
         GlStateManager.pushMatrix()
         func()
         GlStateManager.popMatrix()
     }
 
+    /**
+     * Creates a IRenderCache that can be used to render a model efficiently.
+     *
+     * To make efficient use of the IRenderCache you need to reuse it as much as possible
+     * and only create a new one if the model is different.
+     *
+     * If you are not going to use it anymore call IRenderCache.close() to free GPU memory
+     */
     @JvmStatic
     fun cacheModel(model: IBakedModel): IRenderCache {
         return TextureModelCache(AtlasTexture.LOCATION_BLOCKS_TEXTURE, ModelCache { renderModelSlow(model) })
     }
 
+    /**
+     * Renders a model without any cache.
+     * This is slow and should't be used directly, you should cache the model to improve performance
+     */
     @JvmStatic
     fun renderModelSlow(model: IBakedModel) {
         val tessellator = Tessellator.getInstance()
@@ -72,6 +99,9 @@ object Utilities {
         tessellator.draw()
     }
 
+    /**
+     * Rotates a block around the center following a Direction
+     */
     @JvmStatic
     fun rotateAroundCenter(facing: Direction) {
         when (facing) {
@@ -84,11 +114,17 @@ object Utilities {
         }
     }
 
+    /**
+     * Rotates around a custom pivot
+     */
     @JvmStatic
     fun customRotate(euler: Vec3d, pivot: Vec3d) {
         customRotate(euler.x, euler.y, euler.z, pivot)
     }
 
+    /**
+     * Rotates around a custom pivot
+     */
     @JvmStatic
     fun customRotate(x: Double, y: Double, z: Double, pivot: Vec3d) {
         GlStateManager.translated(pivot.x, pivot.y, pivot.z)

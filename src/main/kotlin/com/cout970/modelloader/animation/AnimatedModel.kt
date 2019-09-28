@@ -1,18 +1,20 @@
 package com.cout970.modelloader.animation
 
-import com.cout970.modelloader.*
 import com.cout970.modelloader.api.IRenderCache
+import com.cout970.modelloader.api.TRSTransformation
+import com.cout970.modelloader.asQuaternion
+import com.cout970.modelloader.interpolated
+import com.cout970.modelloader.plus
+import com.cout970.modelloader.times
 import com.mojang.blaze3d.platform.GlStateManager
-import net.minecraftforge.client.ForgeHooksClient
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import javax.vecmath.Vector4d
 
-data class AnimationKeyframe<T>(
-    val time: Float,
-    val value: T
-)
-
+/**
+ * A node in the animated model.
+ * The more nodes a model has the more expensive it is to render the model
+ */
 data class AnimatedNode(
     val index: Int,
     val transform: TRSTransformation,
@@ -20,16 +22,38 @@ data class AnimatedNode(
     val cache: IRenderCache
 )
 
-enum class AnimationChannelType {
-    TRANSLATION, ROTATION, SCALE
-}
-
+/**
+ * A channel of the animation
+ * Stores changes to a property of the model, the value of the property is calculated using the keyframes
+ * - index is the id of the node to modify
+ * - type is the property to modify
+ * - keyframes have the values to put in the property and the time where to put them
+ */
 data class AnimationChannel(
     val index: Int,
     val type: AnimationChannelType,
     val keyframes: List<AnimationKeyframe<Any>>
 )
 
+/**
+ * Type of an AnimationChannel
+ */
+enum class AnimationChannelType {
+    TRANSLATION, ROTATION, SCALE
+}
+
+/**
+ * A single keyframe of the animation,
+ * Stores the value of a property of the model in a concrete animation time
+ */
+data class AnimationKeyframe<T>(
+    val time: Float,
+    val value: T
+)
+
+/**
+ * An animated model
+ */
 class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<AnimationChannel>) {
 
     /**
@@ -40,6 +64,7 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
     }
 
     /**
+     * Renders the model with an specified animation time
      * Time is in seconds, to use ticks just divide by 20
      */
     fun render(time: Double) {
@@ -47,29 +72,40 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         rootNodes.forEach { renderNode(it, localTime) }
     }
 
+    /**
+     * Renders a single node tree of the model
+     */
     fun renderNode(node: AnimatedNode, time: Float) {
         GlStateManager.pushMatrix()
-        val matrix = getTransform(node, time).matrixVec.apply { transpose() }
-        ForgeHooksClient.multiplyCurrentGlMatrix(matrix)
+        getTransform(node, time).glMultiply()
         node.cache.render()
         node.children.forEach { renderNode(it, time) }
         GlStateManager.popMatrix()
     }
 
+    /**
+     *  Renders the model without texture with an specified animation time
+     * Time is in seconds, to use ticks just divide by 20
+     */
     fun renderUntextured(time: Double) {
         val localTime = (time % length.toDouble()).toFloat()
         rootNodes.forEach { renderUntexturedNode(it, localTime) }
     }
 
+    /**
+     * Renders a single node tree of the model without textures
+     */
     fun renderUntexturedNode(node: AnimatedNode, time: Float) {
         GlStateManager.pushMatrix()
-        val matrix = getTransform(node, time).matrixVec.apply { transpose() }
-        ForgeHooksClient.multiplyCurrentGlMatrix(matrix)
+        getTransform(node, time).glMultiply()
         node.cache.renderUntextured()
         node.children.forEach { renderUntexturedNode(it, time) }
         GlStateManager.popMatrix()
     }
 
+    /**
+     * Gets the Transformation of a node given an animation time
+     */
     fun getTransform(node: AnimatedNode, time: Float): TRSTransformation {
         val channels = channels.filter { it.index == node.index }
 
@@ -118,6 +154,9 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         return TRSTransformation(translation, rotation, scale)
     }
 
+    /**
+     * Interpolate animation keyframes with Vectors
+     */
     fun interpolateVec3(time: Float, prev: AnimationKeyframe<Vector3d>, next: AnimationKeyframe<Vector3d>): Vector3d {
         if (next.time == prev.time) return next.value
 
@@ -127,6 +166,9 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         return (prev.value).interpolated(next.value, step.toDouble())
     }
 
+    /**
+     * Interpolate animation keyframes with Quaternions
+     */
     fun interpolateQuat(time: Float, prev: AnimationKeyframe<Vector4d>, next: AnimationKeyframe<Vector4d>): Quat4d {
         if (next.time == prev.time) return next.value.asQuaternion()
 
@@ -136,6 +178,9 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         return prev.value.asQuaternion().interpolated(next.value.asQuaternion(), step.toDouble())
     }
 
+    /**
+     * Returns a pair of keyframes to interpolate
+     */
     fun <T> getPrevAndNext(time: Float, keyframes: List<AnimationKeyframe<T>>): Pair<AnimationKeyframe<T>, AnimationKeyframe<T>> {
         val next = keyframes.firstOrNull { it.time > time } ?: keyframes.first()
         val prev = keyframes.lastOrNull { it.time <= time } ?: keyframes.last()

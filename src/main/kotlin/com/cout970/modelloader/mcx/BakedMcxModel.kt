@@ -13,6 +13,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.util.Direction
 import java.util.*
 
+/**
+ * Baked model for MCx models
+ */
 class BakedMcxModel(
     val modelData: UnbakedMcxModel,
     var particles: TextureAtlasSprite,

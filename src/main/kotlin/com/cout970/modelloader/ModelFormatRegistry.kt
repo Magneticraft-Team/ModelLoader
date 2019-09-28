@@ -11,13 +11,25 @@ import net.minecraft.util.ResourceLocation
 import java.io.FileNotFoundException
 import java.util.function.Function
 
+/**
+ * Custom model format handler
+ */
 interface IFormatHandler {
+    /**
+     * Loads an IUnbakedModel given a location and the resource manager
+     */
     fun loadModel(resourceManager: IResourceManager, modelLocation: ResourceLocation): IUnbakedModel
 }
 
+/**
+ * Registry of installed model formats
+ */
 object ModelFormatRegistry {
     private val registry = mutableMapOf<String, IFormatHandler>()
 
+    /**
+     * Loads a model based on the extension
+     */
     fun loadUnbakedModel(resourceManager: IResourceManager, modelLocation: ResourceLocation): IUnbakedModel {
         val extension = modelLocation.path.substringAfterLast('.', "missing")
         val handler = registry[extension]
@@ -38,13 +50,23 @@ object ModelFormatRegistry {
         }
     }
 
+    /**
+     * Checks if a model file extension is supported
+     */
     fun supportsExtension(extension: String): Boolean = registry.containsKey(extension)
 
+    /**
+     * Registers a new model format
+     */
+    @JvmStatic
     fun registerHandler(extension: String, handler: IFormatHandler) {
         registry[extension] = handler
     }
 }
 
+/**
+ * Default empty unbaked model
+ */
 object NullUnbakedModel : IUnbakedModel {
     override fun bake(bakery: ModelBakery, spriteGetter: Function<ResourceLocation, TextureAtlasSprite>, sprite: ISprite, format: VertexFormat): IBakedModel? = null
 

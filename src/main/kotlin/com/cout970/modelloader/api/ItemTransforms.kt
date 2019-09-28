@@ -7,6 +7,9 @@ import net.minecraft.client.renderer.model.ItemTransformVec3f
 import javax.vecmath.Vector3f
 import net.minecraft.client.renderer.Vector3f as McVector3
 
+/**
+ * List of transformations to apply to an item in different situations
+ */
 data class ItemTransforms(
     val thirdPersonLeft: ItemTransform,
     val thirdPersonRight: ItemTransform,

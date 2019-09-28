@@ -7,6 +7,9 @@ import net.minecraft.client.renderer.model.ModelRotation
 import net.minecraft.util.Direction
 import net.minecraft.util.ResourceLocation
 
+/**
+ * Configuration that tells the library how to load a model.
+ */
 data class ModelConfig @JvmOverloads constructor(
     val location: ResourceLocation,
     val itemTransforms: ItemTransforms = ItemTransforms.DEFAULT,

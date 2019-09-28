@@ -18,23 +18,39 @@ import org.apache.logging.log4j.Logger
 
 lateinit var ModelLoaderMod: ModelLoaderModImpl
 
+/**
+ * Main mod class
+ */
 @Mod("modelloader")
 class ModelLoaderModImpl {
+    /**
+     * Location of the default texture used for model particles,
+     * its used when a model doesn't has any texture
+     */
     val defaultParticleTexture = ResourceLocation("modelloader:default_particle")
+    /**
+     * Location of the default texture used for entire models,
+     * its used when a model has a mesh without texture
+     */
     val defaultModelTexture = ResourceLocation("modelloader:default_model")
     val logger: Logger = LogManager.getLogger()
 
     init {
         ModelLoaderMod = this
         FMLJavaModLoadingContext.get()?.apply {
+            // Event before textures are loaded
             modEventBus.addListener<TextureStitchEvent.Pre> { onTextureStitchEvent(it) }
+            // Event when models are baked
             modEventBus.addListener<ModelBakeEvent>(EventPriority.HIGH) { onModelBakeEvent(it) }
         }
 
+        // Allow blockstate json files to use gltf or mcx models
         ModelLoaderRegistry.registerLoader(MLCustomModelLoader)
+        // Register the default formats
         ModelFormatRegistry.registerHandler("mcx", McxFormatHandler)
         ModelFormatRegistry.registerHandler("gltf", GltfFormatHandler)
 
+        // Register config options
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.spec)
     }
 
@@ -50,6 +66,7 @@ class ModelLoaderModImpl {
 
 internal object Config {
     val spec: ForgeConfigSpec
+    // Allows the mod to use multiple thread to load models in parallel
     val useMultithreading: ForgeConfigSpec.BooleanValue
 
     init {

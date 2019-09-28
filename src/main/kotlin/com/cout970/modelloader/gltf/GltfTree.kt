@@ -1,6 +1,7 @@
 package com.cout970.modelloader.gltf
 
-import com.cout970.modelloader.TRSTransformation
+import com.cout970.modelloader.ModelLoaderMod
+import com.cout970.modelloader.api.TRSTransformation
 import net.minecraft.util.ResourceLocation
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -103,8 +104,8 @@ object GltfTree {
                 val indices = prim.indices?.let { accessors[it] }
                 val mode = GltfMode.fromId(prim.mode)
 
-                val material = getMaterial(file, prim.material, location)
-                material?.let { textures += it }
+                val material = getMaterial(file, prim.material, location) ?: ModelLoaderMod.defaultModelTexture
+                textures += material
 
                 Primitive(attr, indices, mode, material)
             }
@@ -217,7 +218,7 @@ object GltfTree {
         val attributes: Map<GltfAttribute, Buffer>,
         val indices: Buffer? = null,
         val mode: GltfMode,
-        val material: ResourceLocation?
+        val material: ResourceLocation
     )
 
     data class Buffer(

@@ -11,10 +11,16 @@ import net.minecraftforge.eventbus.api.Event
  */
 class ModelRegisterEvent(val map: MutableMap<ModelResourceLocation, ModelConfig>) : Event() {
 
+    /**
+     * Registers a model to be loaded
+     */
     fun registerModel(modelId: ModelResourceLocation, config: ModelConfig) {
         map[modelId] = config
     }
 
+    /**
+     * Registers a model to be loaded
+     */
     fun registerModel(modId: String, path: String, variant: String, config: ModelConfig) {
         map[ModelResourceLocation("$modId:$path#$variant")] = config
     }
@@ -25,18 +31,30 @@ class ModelRegisterEvent(val map: MutableMap<ModelResourceLocation, ModelConfig>
  */
 class ModelRetrieveEvent(val map: Map<ModelResourceLocation, PostBakeModel>) : Event() {
 
+    /**
+     * Retrieves a baked model
+     */
     fun getModel(modelId: ModelResourceLocation): IBakedModel? {
         return map[modelId]?.baked
     }
 
+    /**
+     * Retrieves a baked model
+     */
     fun getModel(modId: String, path: String, variant: String): IBakedModel? {
         return getModel(ModelResourceLocation("$modId:$path#$variant"))
     }
 
+    /**
+     * Retrieves all the animations of a model
+     */
     fun getAnimations(modelId: ModelResourceLocation): Map<String, AnimatedModel> {
         return map[modelId]?.animations ?: emptyMap()
     }
 
+    /**
+     * Retrieves all the animations of a model
+     */
     fun getAnimations(modId: String, path: String, variant: String): Map<String, AnimatedModel> {
         return getAnimations(ModelResourceLocation("$modId:$path#$variant"))
     }

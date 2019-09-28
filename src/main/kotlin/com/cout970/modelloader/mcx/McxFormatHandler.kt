@@ -3,6 +3,7 @@
 package com.cout970.modelloader.mcx
 
 import com.cout970.modelloader.*
+import com.cout970.modelloader.animation.VertexUtilities
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -78,7 +79,7 @@ internal class McxBaker(val format: VertexFormat, val textureGetter: Function<Re
                 for (index in 0..3) {
                     putVertex(builder, format, normal, pos[index], tex[index], sprite)
                 }
-                bakedQuads.add(builder.build())
+                bakedQuads.add(VertexUtilities.compact(builder.build()))
             }
         }
         return bakedQuads

@@ -15,7 +15,7 @@ import java.io.Closeable
 interface IRenderCache : Closeable {
 
     /**
-     * Performs the render process, or use the cache if available
+     * Performs the render process
      */
     fun render()
 

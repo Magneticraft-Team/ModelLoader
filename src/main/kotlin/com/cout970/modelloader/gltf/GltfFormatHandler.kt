@@ -4,6 +4,7 @@ package com.cout970.modelloader.gltf
 
 import com.cout970.modelloader.*
 import com.cout970.modelloader.animation.*
+import com.cout970.modelloader.api.TRSTransformation
 import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ItemCameraTransforms
@@ -90,10 +91,8 @@ internal class GltfAnimator(
 
         val mesh = node.mesh ?: return
         withVertices(mesh.primitives.mapNotNull {
-            val material = it.material ?: ModelLoaderMod.defaultModelTexture
-
             val group = it.toVertexGroup(node.transform, null) ?: return@mapNotNull null
-            group.copy(texture = locationToFile(material))
+            group.copy(texture = locationToFile(it.material))
         })
     }
 
@@ -139,7 +138,7 @@ internal class GltfBaker(
         val quads = mutableListOf<BakedQuad>()
 
         mesh.primitives.forEach { prim ->
-            val sprite = bakedTextureGetter.apply(prim.material ?: ModelLoaderMod.defaultModelTexture)
+            val sprite = bakedTextureGetter.apply(prim.material)
             val group = prim.toVertexGroup(globalTransform, null) ?: return@forEach
 
             quads += VertexUtilities.bakedVertices(format, sprite, group.vertex)
@@ -152,11 +151,6 @@ internal class GltfBaker(
 private fun GltfTree.Primitive.toVertexGroup(globalTransform: TRSTransformation, sprite: TextureAtlasSprite?): VertexGroup? {
     if (mode != GltfMode.TRIANGLES && mode != GltfMode.QUADS) {
         ModelLoaderMod.logger.warn("Found primitive with unsupported mode: ${mode}, ignoring")
-        return null
-    }
-
-    if (indices != null) {
-        ModelLoaderMod.logger.warn("Found primitive with indices, this is not supported yet, ignoring")
         return null
     }
 
@@ -179,6 +173,9 @@ private fun GltfTree.Primitive.toVertexGroup(globalTransform: TRSTransformation,
     }
 
     @Suppress("UNCHECKED_CAST")
+    val indexList = indices?.data as? List<Int>
+
+    @Suppress("UNCHECKED_CAST")
     val pos = posBuffer.data as List<Vector3d>
     @Suppress("UNCHECKED_CAST")
     val tex = texBuffer?.data as? List<Vector2d> ?: emptyList()
@@ -190,11 +187,10 @@ private fun GltfTree.Primitive.toVertexGroup(globalTransform: TRSTransformation,
             .run { Vector3d(x.toDouble(), y.toDouble(), z.toDouble()) }
     }
 
-    val texture = material ?: ModelLoaderMod.defaultModelTexture
     val vertex = mutableListOf<Vertex>()
 
     VertexUtilities.collect(
-        CompactModelData(indices, newPos, tex, newPos.size, mode != GltfMode.QUADS), sprite, vertex
+        CompactModelData(indexList, newPos, tex, newPos.size, mode != GltfMode.QUADS), sprite, vertex
     )
-    return VertexGroup(texture, vertex)
+    return VertexGroup(material, vertex)
 }

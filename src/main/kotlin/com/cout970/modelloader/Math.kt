@@ -1,75 +1,15 @@
 package com.cout970.modelloader
 
+import com.cout970.modelloader.api.TRSTransformation
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import net.minecraft.util.Direction
-import net.minecraftforge.common.model.ITransformation
 import java.lang.reflect.Type
 import javax.vecmath.*
 import kotlin.math.sqrt
 
-data class TRSTransformation(
-    val translation: Vector3d = Vector3d(),
-    val rotation: Quat4d = Quat4d(0.0, 0.0, 0.0, 1.0),
-    val scale: Vector3d = Vector3d(1.0, 1.0, 1.0)
-) : ITransformation {
-
-    // Gson pls
-    private constructor() : this(Vector3d(), Quat4d(0.0, 0.0, 0.0, 1.0), Vector3d(1.0, 1.0, 1.0))
-
-    override fun getMatrixVec(): Matrix4f {
-        val self = this
-        return Matrix4f().apply {
-            setIdentity()
-
-            // rotation
-            if (rotation.w != 0.0) {
-                this.setRotation(Quat4f(rotation).apply { inverse() })
-            }
-
-            // translation
-            m30 = self.translation.x.toFloat()
-            m31 = self.translation.y.toFloat()
-            m32 = self.translation.z.toFloat()
-
-            // scale
-            m00 *= self.scale.x.toFloat()
-            m01 *= self.scale.x.toFloat()
-            m02 *= self.scale.x.toFloat()
-            m10 *= self.scale.y.toFloat()
-            m11 *= self.scale.y.toFloat()
-            m12 *= self.scale.y.toFloat()
-            m20 *= self.scale.z.toFloat()
-            m21 *= self.scale.z.toFloat()
-            m22 *= self.scale.z.toFloat()
-        }
-    }
-
-    operator fun plus(other: TRSTransformation): TRSTransformation {
-        return Matrix4d(this.matrixVec * other.matrixVec).toTRS()
-    }
-
-    operator fun times(other: TRSTransformation): TRSTransformation {
-        return TRSTransformation(
-            translation = this.rotation.rotate(other.translation) + this.translation * other.scale,
-            rotation = this.rotation * other.rotation,
-            scale = this.scale * other.scale
-        )
-    }
-
-    fun lerp(other: TRSTransformation, step: Float): TRSTransformation {
-        return TRSTransformation(
-            translation = this.translation.interpolated(other.translation, step.toDouble()),
-            rotation = this.rotation.interpolated(other.rotation, step.toDouble()),
-            scale = this.scale.interpolated(other.scale, step.toDouble())
-        )
-    }
-
-    override fun rotate(facing: Direction): Direction = facing
-
-    override fun rotate(facing: Direction, vertexIndex: Int): Int = vertexIndex
-}
+// Internal math utilities
+// They are internal to avoid global environment pollution
 
 internal fun Matrix4d.getRotation(): Quat4d {
     return Quat4d().apply { set(this@getRotation) }
@@ -160,7 +100,7 @@ internal fun Vector4d.asQuaternion(): Quat4d {
     return Quat4d(this)
 }
 
-fun Quat4d.setFromUnnormalized(mat: Matrix4d): Quat4d {
+internal fun Quat4d.setFromUnnormalized(mat: Matrix4d): Quat4d {
     var nm00 = mat.m00
     var nm01 = mat.m01
     var nm02 = mat.m02

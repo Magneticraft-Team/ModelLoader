@@ -19,12 +19,18 @@ import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.fml.ModLoader
 import java.util.stream.Collectors
 
+/**
+ * Model loaded from disk
+ */
 data class PreBakeModel(
     val modelId: ModelResourceLocation,
     val pre: ModelConfig,
     val unbaked: IUnbakedModel
 )
 
+/**
+ * Model after the bake event
+ */
 data class PostBakeModel(
     val modelId: ModelResourceLocation,
     val pre: ModelConfig,
@@ -32,26 +38,41 @@ data class PostBakeModel(
     val animations: Map<String, AnimatedModel>
 )
 
+/**
+ * IBakedModel with extra variables
+ */
 interface IItemTransformable {
     fun setItemTransforms(it: ItemTransforms)
     fun setHasItemRenderer(hasItemRenderer: Boolean)
 }
 
+/**
+ * Internal use only, please use ModelRegisterEvent and ModelRetrieveEvent instead
+ */
 object ModelManager {
     private val registeredModels = mutableMapOf<ModelResourceLocation, ModelConfig>()
     private var textureToRegister: Set<ResourceLocation>? = null
     private var modelsToBake: List<PreBakeModel>? = null
     private var loadedModels: Map<ModelResourceLocation, PostBakeModel> = emptyMap()
 
+    @JvmStatic
     fun register(modelId: ModelResourceLocation, pre: ModelConfig) {
         registeredModels[modelId] = pre
     }
 
-    fun getModel(modelId: ModelResourceLocation): IBakedModel? = loadedModels[modelId]?.baked
+    @JvmStatic
+    fun getModel(modelId: ModelResourceLocation): IBakedModel? {
+        return loadedModels[modelId]?.baked
+    }
 
-    fun getAnimations(modelId: ModelResourceLocation): Map<String, AnimatedModel> = loadedModels[modelId]?.animations
-        ?: emptyMap()
+    @JvmStatic
+    fun getAnimations(modelId: ModelResourceLocation): Map<String, AnimatedModel> {
+        return loadedModels[modelId]?.animations ?: emptyMap()
+    }
 
+    /**
+     * Called to load from disk all models
+     */
     fun loadModelFiles(resourceManager: IResourceManager) {
         try {
             ModLoader.get().postEvent(ModelRegisterEvent(registeredModels))
@@ -107,12 +128,18 @@ object ModelManager {
         modelsToBake = models
     }
 
+    /**
+     * Called to get all textures needed for models
+     */
     fun onTextureStitchEvent(event: TextureStitchEvent.Pre) {
         // Register all textures
         textureToRegister?.forEach { event.addSprite(it) }
         textureToRegister = null
     }
 
+    /**
+     * Called to bake all models and animations
+     */
     fun onModelBakeEvent(event: ModelBakeEvent) {
         val modelsToBake = modelsToBake ?: return
         ModelManager.modelsToBake = null
@@ -155,6 +182,9 @@ object ModelManager {
         }
     }
 
+    /**
+     * Internal method: bake models and create animations
+     */
     private fun processModel(model: PreBakeModel, loader: ModelLoader): PostBakeModel {
         val baked = when {
             model.pre.bake -> bakeModel(model.unbaked, loader, model.pre.rotation)
@@ -167,6 +197,9 @@ object ModelManager {
         return PostBakeModel(model.modelId, model.pre, baked, animations)
     }
 
+    /**
+     * Bake a single model
+     */
     fun bakeModel(model: IUnbakedModel, loader: ModelLoader, rotation: ISprite): IBakedModel? {
         return model.bake(loader, ModelLoader.defaultTextureGetter(), rotation, DefaultVertexFormats.ITEM)
     }

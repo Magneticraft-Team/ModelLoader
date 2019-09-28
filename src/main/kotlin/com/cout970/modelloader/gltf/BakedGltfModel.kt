@@ -11,6 +11,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.util.Direction
 import java.util.*
 
+/**
+ * Baked model for glTF models
+ */
 class BakedGltfModel(
     val quads: List<BakedQuad>,
     val particle: TextureAtlasSprite,

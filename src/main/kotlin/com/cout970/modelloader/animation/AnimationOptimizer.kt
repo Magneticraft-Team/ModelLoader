@@ -1,6 +1,6 @@
 package com.cout970.modelloader.animation
 
-import com.cout970.modelloader.TRSTransformation
+import com.cout970.modelloader.api.TRSTransformation
 import com.cout970.modelloader.api.ModelCache
 import com.cout970.modelloader.api.ModelGroupCache
 import com.cout970.modelloader.api.TextureModelCache

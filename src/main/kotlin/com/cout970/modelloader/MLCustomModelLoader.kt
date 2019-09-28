@@ -5,10 +5,17 @@ import net.minecraft.resources.IResourceManager
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.model.ICustomModelLoader
 
+/**
+ * Allows minecraft to load glTF and mcx model from blockstate json files
+ */
 object MLCustomModelLoader : ICustomModelLoader {
     private lateinit var resourceManager: IResourceManager
     private val validDomains = mutableSetOf<String>()
 
+    /**
+     * Registers a modId, so this class is allowed to load models from that mod
+     */
+    @JvmStatic
     fun registerDomain(domain: String){
         validDomains += domain
     }

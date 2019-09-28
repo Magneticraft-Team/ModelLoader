@@ -15,6 +15,9 @@ import javax.vecmath.Vector3d
 
 object VertexUtilities {
 
+    /**
+     * Creates a list of baked quads from a list of Vertex
+     */
     fun bakedVertices(format: VertexFormat, sprite: TextureAtlasSprite, storage: List<Vertex>): List<BakedQuad> {
         val quads = mutableListOf<BakedQuad>()
 
@@ -24,7 +27,7 @@ object VertexUtilities {
             val c = storage[4 * it + 2]
             val d = storage[4 * it + 3]
 
-            quads += UnpackedBakedQuad.Builder(format).apply {
+            val unpacked = UnpackedBakedQuad.Builder(format).apply {
                 setContractUVs(true)
                 setTexture(sprite)
                 putVertex(format, a, sprite)
@@ -33,11 +36,27 @@ object VertexUtilities {
                 putVertex(format, d, sprite)
                 setQuadOrientation(Direction.getFacingFromVector(a.xn, a.yn, a.zn))
             }.build()
+
+            quads += compact(unpacked)
         }
 
         return quads
     }
 
+    fun compact(unpacked: UnpackedBakedQuad): BakedQuad {
+        return BakedQuad(
+            unpacked.vertexData,
+            unpacked.tintIndex,
+            unpacked.face,
+            unpacked.sprite,
+            unpacked.shouldApplyDiffuseLighting(),
+            unpacked.format
+        )
+    }
+
+    /**
+     * Auxiliary function
+     */
     fun UnpackedBakedQuad.Builder.putVertex(format: VertexFormat, vertex: Vertex, sprite: TextureAtlasSprite) {
         repeat(format.elementCount) { e ->
             val elem = format.getElement(e)
@@ -53,6 +72,9 @@ object VertexUtilities {
         }
     }
 
+    /**
+     * Fills a list of vertices from a compact model
+     */
     fun collect(model: ICompactModelData, sprite: TextureAtlasSprite?, storage: MutableList<Vertex>) {
         val indices = model.indices
 
@@ -79,6 +101,9 @@ object VertexUtilities {
         }
     }
 
+    /**
+     * Fills a list of vertices from a list of baked quads
+     */
     fun collect(list: List<BakedQuad>, storage: MutableList<Vertex>) {
         list.forEach {
             storage += Vertex(
@@ -124,6 +149,9 @@ object VertexUtilities {
         }
     }
 
+    /**
+     * Collect vertices from indexed buffers of quads
+     */
     fun collectQuadIndexed(index: Int, indices: List<Int>, pos: List<Vector3d>, tex: List<Vector2d>,
                            sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
@@ -150,6 +178,9 @@ object VertexUtilities {
         result += vertexOf(d, dt, normal)
     }
 
+    /**
+     * Collect vertices from indexed buffers of triangles
+     */
     fun collectQuadFromTriangleIndexed(index: Int, indices: List<Int>, pos: List<Vector3d>, tex: List<Vector2d>,
                                        sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
@@ -174,6 +205,9 @@ object VertexUtilities {
         result += vertexOf(c, ct, normal)
     }
 
+    /**
+     * Collect vertices from buffers of quads
+     */
     fun collectQuad(index: Int, pos: List<Vector3d>, tex: List<Vector2d>,
                     sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
@@ -200,6 +234,9 @@ object VertexUtilities {
         result += vertexOf(d, dt, normal)
     }
 
+    /**
+     * Collect vertices from buffers of triangles
+     */
     fun collectQuadFromTriangle(index: Int, pos: List<Vector3d>, tex: List<Vector2d>,
                                 sprite: TextureAtlasSprite?, result: MutableList<Vertex>) {
 
@@ -224,12 +261,19 @@ object VertexUtilities {
         result += vertexOf(c, ct, normal)
     }
 
+    /**
+     * Creates a vertex from data in vectors
+     */
     fun vertexOf(pos: Vector3d, uv: Vector2d, normal: Vector3d) = Vertex(
         pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat(),
         uv.x.toFloat(), uv.y.toFloat(),
         normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()
     )
 
+    /**
+     * Maps a UV coordinate into a sprite
+     * If the sprite is null, the original coordinate is returned
+     */
     fun Vector2d?.applySprite(sprite: TextureAtlasSprite?): Vector2d {
         this ?: return Vector2d()
 
