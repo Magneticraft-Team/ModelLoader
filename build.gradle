@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: "kotlin"
 
-version = '2.0.0'
+version = '2.0.1'
 group = 'com.cout970.modelloader'
 archivesBaseName = 'modelloader'
 
@@ -45,7 +45,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                modeloader {
+                modelloader {
                     source sourceSets.main
                 }
             }
@@ -61,7 +61,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                modeloader {
+                modelloader {
                     source sourceSets.main
                 }
             }
@@ -79,7 +79,7 @@ minecraft {
             args '--mod', 'modeloader', '--all', '--output', file('src/generated/resources/')
 
             mods {
-                modeloader {
+                modelloader {
                     source sourceSets.main
                 }
             }
@@ -92,7 +92,7 @@ sourceSets {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.0.81'
+    minecraft 'net.minecraftforge:forge:1.14.4-28.1.96'
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
@@ -127,8 +127,16 @@ task deobfJar(type:Jar) {
     classifier 'deobf'
 }
 
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task buildAndPublish(dependsOn: [build, publishToMavenLocal]) {}
+
 artifacts {
     archives deobfJar
+    archives sourcesJar
 }
 
 publishing {

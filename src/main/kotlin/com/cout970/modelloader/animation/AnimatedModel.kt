@@ -25,6 +25,11 @@ data class AnimatedNode(
         children.forEach(AnimatedNode::close)
         cache.close()
     }
+
+    fun asyncClose(runner: (Runnable) -> Unit) {
+        children.forEach { it.asyncClose(runner) }
+        cache.asyncClose(runner)
+    }
 }
 
 /**
@@ -72,9 +77,16 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
      * Renders the model with an specified animation time
      * Time is in seconds, to use ticks just divide by 20
      */
-    fun render(time: Double) {
-        val localTime = (time % length.toDouble()).toFloat()
+    fun render(time: Float) {
+        val localTime = time % length
         rootNodes.forEach { renderNode(it, localTime) }
+    }
+
+    /**
+     * Same but with Double as input, avoids hidden casts at call location
+     */
+    fun render(time: Double) {
+        render(time.toFloat())
     }
 
     /**
@@ -198,5 +210,9 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
      */
     fun close() {
         rootNodes.forEach { it.close() }
+    }
+
+    fun asyncClose(runner: (Runnable) -> Unit) {
+        rootNodes.forEach { it.asyncClose(runner) }
     }
 }

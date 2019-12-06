@@ -3,6 +3,7 @@ package com.cout970.modelloader.api
 import com.mojang.blaze3d.platform.GlStateManager
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.texture.AtlasTexture
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -85,14 +86,28 @@ object Utilities {
     /**
      * Renders a model without any cache.
      * This is slow and should't be used directly, you should cache the model to improve performance
+     *
+     * @see cacheModel
      */
     @JvmStatic
     fun renderModelSlow(model: IBakedModel) {
+        val quads = model.getQuads(null, null, Random(), EmptyModelData.INSTANCE)
+        renderQuadsSlow(quads)
+    }
+
+    /**
+     * Renders a list of quads without any cache.
+     * This is slow and should't be used directly, you should cache the model to improve performance
+     *
+     * @see cacheModel
+     */
+    @JvmStatic
+    fun renderQuadsSlow(quads: List<BakedQuad>) {
         val tessellator = Tessellator.getInstance()
         val buffer = tessellator.buffer
+
         buffer.setTranslation(0.0, 0.0, 0.0)
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.ITEM)
-        val quads = model.getQuads(null, null, Random(), EmptyModelData.INSTANCE)
         for (quad in quads) {
             buffer.addVertexData(quad.vertexData)
         }

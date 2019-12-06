@@ -1,5 +1,10 @@
 package com.cout970.modelloader.mcx
 
+import com.cout970.modelloader.api.EmptyRenderCache
+import com.cout970.modelloader.api.FilterableModel
+import com.cout970.modelloader.api.MutableModelConversion
+import com.cout970.modelloader.mutable.MutableModel
+import com.cout970.modelloader.mutable.MutableModelNode
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelBakery
@@ -16,7 +21,7 @@ class UnbakedMcxModel(
     val particleTexture: ResourceLocation,
     val parts: List<Part>,
     val quads: Mesh
-) : IUnbakedModel {
+) : IUnbakedModel, FilterableModel, MutableModelConversion {
 
     override fun bake(bakery: ModelBakery, spriteGetter: Function<ResourceLocation, TextureAtlasSprite>, sprite: ISprite, format: VertexFormat): IBakedModel? {
         return McxBaker(format, spriteGetter).bake(this)
@@ -28,6 +33,19 @@ class UnbakedMcxModel(
 
     override fun getDependencies(): MutableCollection<ResourceLocation> = mutableListOf()
 
+    override fun filterParts(filter: (String) -> Boolean): UnbakedMcxModel {
+        return UnbakedMcxModel(
+            useAmbientOcclusion = this.useAmbientOcclusion,
+            use3dInGui = this.use3dInGui,
+            particleTexture = this.particleTexture,
+            parts = this.parts.filter { filter(it.name) },
+            quads = this.quads
+        )
+    }
+
+    override fun toMutable(sprites: Function<ResourceLocation, TextureAtlasSprite>, format: VertexFormat): MutableModel {
+        return McxBaker(format, sprites).bakeMutableModel(this)
+    }
+
     class Part(val name: String, val from: Int, val to: Int, val side: Direction?, val texture: ResourceLocation)
 }
-

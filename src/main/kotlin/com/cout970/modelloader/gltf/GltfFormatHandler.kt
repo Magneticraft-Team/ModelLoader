@@ -4,7 +4,12 @@ package com.cout970.modelloader.gltf
 
 import com.cout970.modelloader.*
 import com.cout970.modelloader.animation.*
+import com.cout970.modelloader.api.EmptyRenderCache
+import com.cout970.modelloader.api.ModelCache
 import com.cout970.modelloader.api.TRSTransformation
+import com.cout970.modelloader.api.Utilities
+import com.cout970.modelloader.mutable.MutableModel
+import com.cout970.modelloader.mutable.MutableModelNode
 import net.minecraft.client.renderer.model.BakedQuad
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ItemCameraTransforms
@@ -48,7 +53,7 @@ internal class GltfAnimator(
         animation.channels.forEach { channel ->
             val scene = tree.scenes[tree.scene]
             scene.nodes.forEach {
-                createNode(it.index) { newNode(it, TRSTransformation()) }
+                createNode(it.index) { newNode(it, TRSTransformation.IDENTITY) }
             }
 
             when (channel.path) {
@@ -83,7 +88,7 @@ internal class GltfAnimator(
     fun AnimationNodeBuilder.newNode(node: GltfTree.Node, transform: TRSTransformation) {
         nodeMap[node.index] = node
         node.children.forEach {
-            createChildren(it.index) { newNode(it, TRSTransformation()) }
+            createChildren(it.index) { newNode(it, TRSTransformation.IDENTITY) }
         }
         if (node.children.isNotEmpty()) {
             withTransform(node.transform)
@@ -110,9 +115,9 @@ internal class GltfBaker(
     fun bake(model: UnbakedGltfModel): BakedGltfModel {
         val nodeQuads = mutableListOf<BakedQuad>()
         val scene = model.tree.scenes[model.tree.scene]
-        val trs = TRSTransformation(Vector3d(-0.5, -0.5, -0.5)) +
-            rotation.matrixVec.toTRS() +
-            TRSTransformation(Vector3d(0.5, 0.5, 0.5))
+
+        val offset = Vector3d(0.5, 0.5, 0.5)
+        val trs = TRSTransformation(-offset) + rotation.matrixVec.toTRS() + TRSTransformation(offset)
 
         scene.nodes.forEach { node ->
             recursiveBakeNodes(node, trs, nodeQuads)
@@ -122,6 +127,42 @@ internal class GltfBaker(
         val particle = bakedTextureGetter.apply(particleLocation)
 
         return BakedGltfModel(nodeQuads, particle, ItemCameraTransforms.DEFAULT)
+    }
+
+    fun bakeMutableModel(model: UnbakedGltfModel): MutableModel {
+        val scene = model.tree.scenes[model.tree.scene]
+
+        val offset = Vector3d(0.5, 0.5, 0.5)
+        val trs = TRSTransformation(-offset) + rotation.matrixVec.toTRS() + TRSTransformation(offset)
+
+        val children = mutableMapOf<String, MutableModelNode>()
+
+        scene.nodes.forEachIndexed { index, node ->
+            val name = node.name ?: index.toString()
+            children[name] = recursiveBakeMutableNodes(node)
+        }
+
+        return MutableModel(MutableModelNode(EmptyRenderCache, children, transform = trs.toMutable(), useTransform = true))
+    }
+
+    fun recursiveBakeMutableNodes(node: GltfTree.Node): MutableModelNode {
+        val children = mutableMapOf<String, MutableModelNode>()
+        val content = node.mesh?.let { mesh ->
+            val baked = bakeMesh(mesh, TRSTransformation())
+            ModelCache { Utilities.renderQuadsSlow(baked) }
+        } ?: EmptyRenderCache
+
+        node.children.forEachIndexed { index, child ->
+            val name = child.name ?: index.toString()
+            children[name] = recursiveBakeMutableNodes(child)
+        }
+
+        return MutableModelNode(
+            content = content,
+            children = children,
+            transform = node.transform.toMutable(),
+            useTransform = true
+        )
     }
 
     fun recursiveBakeNodes(node: GltfTree.Node, transform: TRSTransformation, list: MutableList<BakedQuad>) {

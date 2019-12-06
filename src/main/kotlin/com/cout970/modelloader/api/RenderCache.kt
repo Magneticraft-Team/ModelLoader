@@ -28,6 +28,18 @@ interface IRenderCache : Closeable {
      * Clear cache and associated resources
      */
     override fun close()
+
+    /**
+     * Clears the state of the cache without performing any GL operation (to avoid thread issues),
+     * all necessary GL operations are performed in a callback passed to runner.
+     *
+     * A common use of this is function is `model.asyncClose(Minecraft.getInstance()::runImmediately)`
+     * which will free the resources immediately if we are in the main thread,
+     * or it will defer the task to be run in the main thread once the game ends the current tick
+     *
+     * @runner is a function that takes tasks that must run in the main thread to avoid GL threading issues
+     */
+    fun asyncClose(runner: (Runnable) -> Unit)
 }
 
 /**
@@ -52,6 +64,16 @@ class ModelCache(val renderFunc: () -> Unit) : IRenderCache {
         }
         id = -1
     }
+
+    override fun asyncClose(runner: (Runnable) -> Unit) {
+        if (id != -1) {
+            val idToFree = id
+            runner.invoke(Runnable {
+                GlStateManager.deleteLists(idToFree, 1)
+            })
+        }
+        id = -1
+    }
 }
 
 /**
@@ -71,6 +93,10 @@ class TextureModelCache(val texture: ResourceLocation, vararg val cache: IRender
     override fun close() {
         cache.forEach { it.close() }
     }
+
+    override fun asyncClose(runner: (Runnable) -> Unit) {
+        cache.forEach { it.asyncClose(runner) }
+    }
 }
 
 /**
@@ -89,4 +115,16 @@ class ModelGroupCache(vararg val cache: IRenderCache) : IRenderCache {
     override fun close() {
         cache.forEach { it.close() }
     }
+
+    override fun asyncClose(runner: (Runnable) -> Unit) {
+        cache.forEach { it.asyncClose(runner) }
+    }
+}
+
+object EmptyRenderCache : IRenderCache {
+    override fun render() = Unit
+
+    override fun close() = Unit
+
+    override fun asyncClose(runner: (Runnable) -> Unit) = Unit
 }

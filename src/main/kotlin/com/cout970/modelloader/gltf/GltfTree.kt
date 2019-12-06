@@ -190,7 +190,7 @@ object GltfTree {
         }
     }
 
-    class DefinitionTree(
+    data class DefinitionTree(
         val scene: Int,
         val scenes: List<Scene>,
         val animations: List<Animation>,
@@ -198,11 +198,11 @@ object GltfTree {
         val extra: Any?
     )
 
-    class Scene(
+    data class Scene(
         val nodes: List<Node>
     )
 
-    class Node(
+    data class Node(
         val index: Int,
         val children: List<Node>,
         val transform: TRSTransformation,
@@ -210,11 +210,11 @@ object GltfTree {
         val name: String? = null
     )
 
-    class Mesh(
+    data class Mesh(
         val primitives: List<Primitive>
     )
 
-    class Primitive(
+    data class Primitive(
         val attributes: Map<GltfAttribute, Buffer>,
         val indices: Buffer? = null,
         val mode: GltfMode,
@@ -227,12 +227,12 @@ object GltfTree {
         val data: List<Any>
     )
 
-    class Animation(
+    data class Animation(
         val name: String?,
         val channels: List<Channel>
     )
 
-    class Channel(
+    data class Channel(
         val node: Int,
         val path: GltfChannelPath,
         val times: List<Float>,

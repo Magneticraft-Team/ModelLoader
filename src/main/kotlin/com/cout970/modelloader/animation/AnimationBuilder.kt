@@ -1,9 +1,8 @@
 package com.cout970.modelloader.animation
 
 import com.cout970.modelloader.api.TRSTransformation
+import com.cout970.modelloader.mutable.MutableTRSTransformation
 import net.minecraft.util.ResourceLocation
-import javax.vecmath.AxisAngle4d
-import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import javax.vecmath.Vector4d
 
@@ -72,48 +71,22 @@ class AnimationBuilder : IAnimationBuilder {
  */
 class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimationBuilder {
     internal val children = mutableListOf<AnimationNodeBuilder>()
-    internal var transform = TRSTransformation()
     internal val vertices: MutableMap<ResourceLocation, MutableList<Vertex>> = mutableMapOf()
+    var transform = MutableTRSTransformation()
+        private set
 
     fun withTransform(t: TRSTransformation): AnimationNodeBuilder {
+        transform = t.toMutable()
+        return this
+    }
+
+    fun withTransform(t: MutableTRSTransformation): AnimationNodeBuilder {
         transform = t
         return this
     }
 
-    fun withTranslation(x: Float, y: Float, z: Float): AnimationNodeBuilder {
-        transform.translation.set(x.toDouble(), y.toDouble(), z.toDouble())
-        return this
-    }
-
-    fun withTranslation(translation: Vector3d): AnimationNodeBuilder {
-        transform.translation.set(translation)
-        return this
-    }
-
-    fun withRotation(rotation: Quat4d): AnimationNodeBuilder {
-        transform.rotation.set(rotation)
-        return this
-    }
-
-    fun withEulerRotation(rotation: Vector3d): AnimationNodeBuilder {
-        transform.rotation.mul(Quat4d().apply { set(AxisAngle4d(1.0, 0.0, 0.0, rotation.x)) })
-        transform.rotation.mul(Quat4d().apply { set(AxisAngle4d(0.0, 1.0, 0.0, rotation.y)) })
-        transform.rotation.mul(Quat4d().apply { set(AxisAngle4d(0.0, 0.0, 1.0, rotation.z)) })
-        return this
-    }
-
-    fun withAxisRotation(rotation: AxisAngle4d): AnimationNodeBuilder {
-        transform.rotation.set(rotation)
-        return this
-    }
-
-    fun withAxisRotation(angle: Float, x: Float, y: Float, z: Float): AnimationNodeBuilder {
-        transform.rotation.set(AxisAngle4d(x.toDouble(), y.toDouble(), z.toDouble(), angle.toDouble()))
-        return this
-    }
-
-    fun withScale(scale: Vector3d): AnimationNodeBuilder {
-        transform.scale.set(scale)
+    fun withTransform(t: (MutableTRSTransformation) -> Unit): AnimationNodeBuilder {
+        transform.apply(t)
         return this
     }
 
@@ -167,15 +140,15 @@ class AnimationNodeBuilder(val id: Int, val parent: IAnimationBuilder) : IAnimat
 //fun usageExample() {
 //    AnimationBuilder()
 //        .createNode(0) {
-//            withTranslation(0f, 1f, 0f)
+//            transform.translate(0f, 1f, 0f)
 //            withVertices(listOf())
 //        }
 //        .createNode() {
-//            withTranslation(1f, 0f, 0f)
+//            transform.translate(1f, 0f, 0f)
 //            withVertices(listOf())
 //
 //            createChildren(1) {
-//                withTranslation(1f, 0f, 0f)
+//                transform.translate(1f, 0f, 0f)
 //                withVertices(listOf())
 //                finish()
 //            }

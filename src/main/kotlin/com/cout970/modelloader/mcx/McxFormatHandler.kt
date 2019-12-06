@@ -4,6 +4,11 @@ package com.cout970.modelloader.mcx
 
 import com.cout970.modelloader.*
 import com.cout970.modelloader.animation.VertexUtilities
+import com.cout970.modelloader.api.EmptyRenderCache
+import com.cout970.modelloader.api.ModelCache
+import com.cout970.modelloader.api.Utilities
+import com.cout970.modelloader.mutable.MutableModel
+import com.cout970.modelloader.mutable.MutableModelNode
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -55,21 +60,57 @@ class Mesh(val pos: List<Vector3d>, val tex: List<Vector2d>, val indices: List<I
 internal class McxBaker(val format: VertexFormat, val textureGetter: Function<ResourceLocation, TextureAtlasSprite>) {
 
     fun bake(model: UnbakedMcxModel): BakedMcxModel {
-        val quads = model.quads.bake(model.parts)
         val particles = textureGetter.apply(model.particleTexture)
-        return BakedMcxModel(model, particles, ItemCameraTransforms.DEFAULT, quads)
+        val quads = model.parts
+            .groupBy { it.side }
+            .mapValues { bakeMesh(model.quads, it.value) }
+
+        return BakedMcxModel(
+            particles = particles,
+            itemTransform = ItemCameraTransforms.DEFAULT,
+            useAmbientOcclusion = model.useAmbientOcclusion,
+            use3dInGui = model.use3dInGui,
+            bakedQuads = quads
+        )
     }
 
-    fun Mesh.bake(parts: List<UnbakedMcxModel.Part>): List<BakedQuad> {
+    fun bakeMutableModel(model: UnbakedMcxModel): MutableModel {
+        val parts = mutableMapOf<String, MutableModelNode>()
 
+        model.parts.forEach { part ->
+            var count = 0
+            var partName = part.name
+
+            // We make sure that parts with the same name are included in the map by autogenerating new names
+            while (partName in parts) {
+                partName = part.name + (++count).toString()
+            }
+
+            parts[partName] = bakeMutableNode(model, part)
+        }
+
+        return MutableModel(MutableModelNode(EmptyRenderCache, parts))
+    }
+
+    fun bakeMutableNode(model: UnbakedMcxModel, part: UnbakedMcxModel.Part): MutableModelNode {
+        val quads = bakeMesh(model.quads, listOf(part))
+        val content = if (quads.isNotEmpty()) ModelCache { Utilities.renderQuadsSlow(quads) } else EmptyRenderCache
+
+        return MutableModelNode(
+            content = content,
+            texture = part.texture
+        )
+    }
+
+    fun bakeMesh(mesh: Mesh, parts: List<UnbakedMcxModel.Part>): List<BakedQuad> {
         val bakedQuads = mutableListOf<BakedQuad>()
 
         for (part in parts) {
             val sprite = textureGetter.apply(part.texture)
 
-            for (i in indices.subList(part.from, part.to)) {
-                val pos = listOf(pos[i.a], pos[i.b], pos[i.c], pos[i.d])
-                val tex = listOf(tex[i.at], tex[i.bt], tex[i.ct], tex[i.dt])
+            for (i in mesh.indices.subList(part.from, part.to)) {
+                val pos = listOf(mesh.pos[i.a], mesh.pos[i.b], mesh.pos[i.c], mesh.pos[i.d])
+                val tex = listOf(mesh.tex[i.at], mesh.tex[i.bt], mesh.tex[i.ct], mesh.tex[i.dt])
                 val normal = getNormal(pos)
 
                 val builder = UnpackedBakedQuad.Builder(format)

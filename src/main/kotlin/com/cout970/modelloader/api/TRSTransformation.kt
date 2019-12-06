@@ -1,6 +1,10 @@
 package com.cout970.modelloader.api
 
 import com.cout970.modelloader.*
+import com.cout970.modelloader.interpolated
+import com.cout970.modelloader.mutable.MutableTRSTransformation
+import com.cout970.modelloader.rotate
+import com.cout970.modelloader.toTRS
 import net.minecraft.util.Direction
 import net.minecraftforge.client.ForgeHooksClient
 import net.minecraftforge.common.model.ITransformation
@@ -11,12 +15,36 @@ import javax.vecmath.*
  * can be converted to a 4x4 matrix.
  */
 data class TRSTransformation(
-    val translation: Vector3d = Vector3d(),
-    val rotation: Quat4d = Quat4d(0.0, 0.0, 0.0, 1.0),
-    val scale: Vector3d = Vector3d(1.0, 1.0, 1.0)
+    val translationX: Float,
+    val translationY: Float,
+    val translationZ: Float,
+    val rotationX: Float,
+    val rotationY: Float,
+    val rotationZ: Float,
+    val rotationW: Float,
+    val scaleX: Float,
+    val scaleY: Float,
+    val scaleZ: Float
 ) : ITransformation {
 
+    val translation: Vector3d get() = Vector3d(translationX.toDouble(), translationY.toDouble(), translationZ.toDouble())
+    val rotation: Quat4d get() = Quat4d(rotationX.toDouble(), rotationY.toDouble(), rotationZ.toDouble(), rotationW.toDouble())
+    val scale: Vector3d get() = Vector3d(scaleX.toDouble(), scaleY.toDouble(), scaleZ.toDouble())
+
+    constructor(translation: Vector3d = Vector3d(), rotation: Quat4d = Quat4d(), scale: Vector3d = Vector3d(1.0, 1.0, 1.0)) : this(
+        translation.x.toFloat(), translation.y.toFloat(), translation.z.toFloat(),
+        rotation.x.toFloat(), rotation.y.toFloat(), rotation.z.toFloat(), rotation.w.toFloat(),
+        scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat()
+    )
+
+    constructor(translation: Vector3f, rotation: Quat4f, scale: Vector3f) : this(
+        translation.x, translation.y, translation.z,
+        rotation.x, rotation.y, rotation.z, rotation.w,
+        scale.x, scale.y, scale.z
+    )
+
     // Gson pls
+    @Suppress("unused")
     private constructor() : this(Vector3d(), Quat4d(0.0, 0.0, 0.0, 1.0), Vector3d(1.0, 1.0, 1.0))
 
     /**
@@ -30,25 +58,25 @@ data class TRSTransformation(
             setIdentity()
 
             // rotation
-            if (rotation.w != 0.0) {
-                this.setRotation(Quat4f(rotation).apply { inverse() })
+            if (rotationW != 0f) {
+                this.setRotation(rotation.apply { inverse() })
             }
 
             // translation
-            m30 = self.translation.x.toFloat()
-            m31 = self.translation.y.toFloat()
-            m32 = self.translation.z.toFloat()
+            m30 = self.translationX
+            m31 = self.translationY
+            m32 = self.translationZ
 
             // scale
-            m00 *= self.scale.x.toFloat()
-            m01 *= self.scale.x.toFloat()
-            m02 *= self.scale.x.toFloat()
-            m10 *= self.scale.y.toFloat()
-            m11 *= self.scale.y.toFloat()
-            m12 *= self.scale.y.toFloat()
-            m20 *= self.scale.z.toFloat()
-            m21 *= self.scale.z.toFloat()
-            m22 *= self.scale.z.toFloat()
+            m00 *= self.scaleX
+            m01 *= self.scaleX
+            m02 *= self.scaleX
+            m10 *= self.scaleY
+            m11 *= self.scaleY
+            m12 *= self.scaleY
+            m20 *= self.scaleZ
+            m21 *= self.scaleZ
+            m22 *= self.scaleZ
         }
     }
 
@@ -57,7 +85,8 @@ data class TRSTransformation(
      * Equivalent to Gl11.glTranslatef(...), Gl11.glRotatef(...), Gl11.glScalef(...) but faster
      */
     fun glMultiply() {
-        val matrix = matrixVec.apply { transpose() }
+        val matrix = matrixVec
+        matrix.transpose()
         ForgeHooksClient.multiplyCurrentGlMatrix(matrix)
     }
 
@@ -102,12 +131,27 @@ data class TRSTransformation(
     }
 
     /**
+     * Creates a mutable version of this transformation
+     */
+    fun toMutable(): MutableTRSTransformation {
+        return MutableTRSTransformation(
+            translation = Vector3f(translationX, translationY, translationZ),
+            rotation = Quat4f(rotationX, rotationY, rotationZ, rotationW),
+            scale = Vector3f(scaleX, scaleY, scaleZ)
+        )
+    }
+
+    /**
      * Method required by ITransformation, does nothing
      */
-    override fun rotate(facing: Direction): Direction = facing
+    override fun rotateTransform(facing: Direction): Direction = facing
 
     /**
      * Method required by ITransformation, does nothing
      */
     override fun rotate(facing: Direction, vertexIndex: Int): Int = vertexIndex
+    
+    companion object{
+        val IDENTITY: TRSTransformation = TRSTransformation() 
+    }
 }

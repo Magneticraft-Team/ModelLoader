@@ -2,6 +2,7 @@ package com.cout970.modelloader.api
 
 import com.cout970.modelloader.PostBakeModel
 import com.cout970.modelloader.animation.AnimatedModel
+import com.cout970.modelloader.mutable.MutableModel
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
 import net.minecraftforge.eventbus.api.Event
@@ -10,8 +11,8 @@ import net.minecraftforge.eventbus.api.Event
  * Event fired when the models are loaded (startup and reload) so a mod can register their models
  */
 class ModelRegisterEvent(
-    val map: MutableMap<ModelResourceLocation, ModelConfig>,
-    val sharedMap: MutableMap<ModelResourceLocation, ModelResourceLocation>
+    private val map: MutableMap<ModelResourceLocation, ModelConfig>,
+    private val sharedMap: MutableMap<ModelResourceLocation, ModelResourceLocation>
 ) : Event() {
 
     /**
@@ -49,7 +50,9 @@ class ModelRegisterEvent(
 /**
  * Event fired after the models are baked so a mod can retrieve their models
  */
-class ModelRetrieveEvent(val map: Map<ModelResourceLocation, PostBakeModel>) : Event() {
+class ModelRetrieveEvent(
+    private val map: Map<ModelResourceLocation, PostBakeModel>
+) : Event() {
 
     /**
      * Retrieves a baked model
@@ -77,5 +80,19 @@ class ModelRetrieveEvent(val map: Map<ModelResourceLocation, PostBakeModel>) : E
      */
     fun getAnimations(modId: String, path: String, variant: String): Map<String, AnimatedModel> {
         return getAnimations(ModelResourceLocation("$modId:$path#$variant"))
+    }
+
+    /**
+     * Retrieves a mutable model
+     */
+    fun getMutableModel(modelId: ModelResourceLocation): MutableModel? {
+        return map[modelId]?.mutable
+    }
+
+    /**
+     * Retrieves a mutable model
+     */
+    fun getMutableModel(modId: String, path: String, variant: String): MutableModel? {
+        return getMutableModel(ModelResourceLocation("$modId:$path#$variant"))
     }
 }

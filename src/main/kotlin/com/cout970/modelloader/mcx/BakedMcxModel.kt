@@ -17,44 +17,43 @@ import java.util.*
  * Baked model for MCx models
  */
 class BakedMcxModel(
-    val modelData: UnbakedMcxModel,
-    var particles: TextureAtlasSprite,
-    var itemTransform: ItemCameraTransforms,
-    quads: List<BakedQuad>
+    particles: TextureAtlasSprite,
+    itemTransform: ItemCameraTransforms,
+    useAmbientOcclusion: Boolean,
+    use3dInGui: Boolean,
+    bakedQuads: Map<Direction?, List<BakedQuad>>
 ) : IBakedModel, IItemTransformable {
 
-    var hasItemRenderer: Boolean = false
-        private set
+    var configParticles: TextureAtlasSprite = particles
+    var configItemTransform: ItemCameraTransforms = itemTransform
+    var configUseAmbientOcclusion: Boolean = useAmbientOcclusion
+    var configUse3dInGui: Boolean = use3dInGui
+    var configBakedQuads: Map<Direction?, List<BakedQuad>> = bakedQuads
+    var configHasItemRenderer: Boolean = false
 
-    val bakedQuads: MutableMap<Direction?, MutableList<BakedQuad>> = modelData.parts
-        .groupBy { it.side }
-        .mapValues { entry ->
-            entry.value.flatMap { quads.subList(it.from, it.to) }.toMutableList()
-        }.toMutableMap()
-
-    override fun getParticleTexture(): TextureAtlasSprite = particles
+    override fun getParticleTexture(): TextureAtlasSprite = configParticles
 
     override fun getQuads(state: BlockState?, side: Direction?, rand: Random): List<BakedQuad> {
-        return bakedQuads[side] ?: emptyList()
+        return configBakedQuads[side] ?: emptyList()
     }
 
-    override fun isBuiltInRenderer(): Boolean = hasItemRenderer
+    override fun isBuiltInRenderer(): Boolean = configHasItemRenderer
 
-    override fun isAmbientOcclusion(): Boolean = modelData.useAmbientOcclusion
+    override fun isAmbientOcclusion(): Boolean = configUseAmbientOcclusion
 
-    override fun isGui3d(): Boolean = modelData.use3dInGui
+    override fun isGui3d(): Boolean = configUse3dInGui
 
     override fun getOverrides(): ItemOverrideList = ItemOverrideList.EMPTY
 
     override fun getItemCameraTransforms(): ItemCameraTransforms {
-        return itemTransform
+        return configItemTransform
     }
 
     override fun setHasItemRenderer(hasItemRenderer: Boolean) {
-        this.hasItemRenderer = hasItemRenderer
+        this.configHasItemRenderer = hasItemRenderer
     }
 
     override fun setItemTransforms(it: ItemTransforms) {
-        itemTransform = it.toItemCameraTransforms()
+        configItemTransform = it.toItemCameraTransforms()
     }
 }

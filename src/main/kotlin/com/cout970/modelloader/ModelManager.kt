@@ -1,11 +1,8 @@
 package com.cout970.modelloader
 
 import com.cout970.modelloader.animation.AnimatedModel
-import com.cout970.modelloader.api.ItemTransforms
-import com.cout970.modelloader.api.ModelConfig
-import com.cout970.modelloader.api.ModelRegisterEvent
-import com.cout970.modelloader.api.ModelRetrieveEvent
-import com.cout970.modelloader.gltf.UnbakedGltfModel
+import com.cout970.modelloader.api.*
+import com.cout970.modelloader.mutable.MutableModel
 import net.minecraft.client.renderer.model.IBakedModel
 import net.minecraft.client.renderer.model.IUnbakedModel
 import net.minecraft.client.renderer.model.ModelResourceLocation
@@ -35,7 +32,8 @@ data class PostBakeModel(
     val modelId: ModelResourceLocation,
     val pre: ModelConfig,
     val baked: IBakedModel?,
-    val animations: Map<String, AnimatedModel>
+    val animations: Map<String, AnimatedModel>,
+    val mutable: MutableModel?
 )
 
 /**
@@ -119,7 +117,15 @@ object ModelManager {
             }
 
             // Allow to alter the model before it gets baked
-            val finalModel = pre.preBake?.invoke(modelId, model) ?: model
+            val processedModel = pre.preBake?.invoke(modelId, model) ?: model
+
+            // Apply filter if specified and supported
+            val finalModel = if (pre.partFilter != null) {
+                if (processedModel is FilterableModel) processedModel.filterParts(pre.partFilter) else processedModel
+            } else {
+                processedModel
+            }
+
             models += PreBakeModel(modelId, pre, finalModel)
         }
 
@@ -186,7 +192,7 @@ object ModelManager {
             val model = event.modelRegistry[origin]
             if (model != null) {
                 event.modelRegistry[destine] = model
-            }else{
+            } else {
                 ModelLoaderMod.logger.error("Unable to share model $origin, it doesn't exist")
             }
         }
@@ -202,15 +208,26 @@ object ModelManager {
      * Internal method: bake models and create animations
      */
     private fun processModel(model: PreBakeModel, loader: ModelLoader): PostBakeModel {
-        val baked = when {
-            model.pre.bake -> bakeModel(model.unbaked, loader, model.pre.rotation)
-            else -> null
+        val baked = if (model.pre.bake){
+            bakeModel(model.unbaked, loader, model.pre.rotation)
         }
-        val animations = when {
-            model.pre.animate && model.unbaked is UnbakedGltfModel -> model.unbaked.getAnimations()
-            else -> emptyMap()
+        else {
+            null
         }
-        return PostBakeModel(model.modelId, model.pre, baked, animations)
+
+        val animations = if (model.pre.animate && model.unbaked is AnimatableModel) {
+            model.unbaked.getAnimations()
+        } else {
+            emptyMap()
+        }
+
+        val mutable = if (model.pre.mutable && model.unbaked is MutableModelConversion) {
+            model.unbaked.toMutable(ModelLoader.defaultTextureGetter(), DefaultVertexFormats.ITEM)
+        } else {
+            null
+        }
+
+        return PostBakeModel(model.modelId, model.pre, baked, animations, mutable)
     }
 
     /**

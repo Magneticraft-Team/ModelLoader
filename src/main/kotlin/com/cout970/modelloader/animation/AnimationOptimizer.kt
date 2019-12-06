@@ -28,7 +28,7 @@ object AnimationOptimizer {
 
     private fun compactNode(tree: AnimationNodeBuilder, animatedNodes: Set<Int>): CompactNode {
         val list = tree.children.map { childData -> compactNode(childData, animatedNodes) }
-        val matrix = tree.transform.matrixVec.apply { transpose() }
+        val matrix = tree.transform.toImmutable().matrixVec.apply { transpose() }
         val (animated, nonAnimated) = list.partition { it.index in animatedNodes }
 
         val childrenVertex = if (tree.id in animatedNodes) {
@@ -67,7 +67,7 @@ object AnimationOptimizer {
 
         val allAnimated = animated + nonAnimated.filter { it.dynamic.isNotEmpty() }.map { it.copy(static = emptyList()) }
 
-        return CompactNode(tree.id, tree.transform, allAnimated, map.map { VertexGroup(it.key, it.value) })
+        return CompactNode(tree.id, tree.transform.toImmutable(), allAnimated, map.map { VertexGroup(it.key, it.value) })
     }
 
     private fun CompactNode.toAnimated(): AnimatedNode {
