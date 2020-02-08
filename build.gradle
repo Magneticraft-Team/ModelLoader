@@ -125,6 +125,7 @@ def reobfArtifact = artifacts.add('default', reobfFile) {
 task deobfJar(type:Jar) {
     from sourceSets.main.output
     classifier 'deobf'
+    archiveName = "ModelLoader-lib.jar"
 }
 
 task sourcesJar(type: Jar) {
@@ -149,23 +150,6 @@ publishing {
     repositories {
         maven {
             url "file:///${project.projectDir}/mcmodsrepo"
-        }
-    }
-}
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/Magneticraft-Team/ModelLoader")
-//            credentials {
-//                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-//                password = project.findProperty("gpr.key") ?: System.getenv("PASSWORD")
-//            }
-        }
-    }
-    publications {
-        gpr(MavenPublication) {
-            from(components.java)
         }
     }
 }
