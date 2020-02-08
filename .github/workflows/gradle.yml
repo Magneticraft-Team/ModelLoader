@@ -16,4 +16,6 @@ jobs:
     - name: Build with Gradle
       run: chmod +x gradlew && ./gradlew build
     - name: Upload artifact
-      run: mvn deploy -Dregistry=https://maven.pkg.github.com/Magneticraft-Team -Dtoken=GH_TOKEN
+      run:  gradle publish -Dtoken=GH_TOKEN
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
