@@ -50,32 +50,28 @@ internal class GltfAnimator(
     val nodeMap = mutableMapOf<Int, GltfTree.Node>()
 
     fun animate(animation: GltfTree.Animation) = AnimationBuilder().apply {
+        val scene = tree.scenes[tree.scene]
+
+        scene.nodes.forEach {
+            createNode(it.index) { newNode(it) }
+        }
+
         animation.channels.forEach { channel ->
-            val scene = tree.scenes[tree.scene]
-            scene.nodes.forEach {
-                createNode(it.index) { newNode(it, TRSTransformation.IDENTITY) }
-            }
 
             when (channel.path) {
                 GltfChannelPath.translation -> {
-                    val base = nodeMap[channel.node]?.transform?.translation ?: Vector3d()
                     addTranslationChannel(channel.node, channel.times.zip(channel.values).map {
-                        AnimationKeyframe(it.first, (it.second as Vector3d) - base)
+                        AnimationKeyframe(it.first, it.second as Vector3d)
                     })
                 }
                 GltfChannelPath.rotation -> {
-                    val baseRot = nodeMap[channel.node]?.transform?.rotation ?: Quat4d(0.0, 0.0, 0.0, 1.0)
-                    if (baseRot.w == 0.0) baseRot.w = 1.0
-                    baseRot.inverse()
                     addRotationChannel(channel.node, channel.times.zip(channel.values).map {
-                        val a = it.second as Vector4d
-                        val b = Quat4d(a.x, a.y, a.z, a.w)
-                        b.mulInverse(baseRot)
-                        AnimationKeyframe(it.first, Vector4d(b.x, b.y, b.z, b.w))
+                        AnimationKeyframe(it.first,  it.second as Vector4d)
                     })
                 }
                 GltfChannelPath.scale -> {
                     val base = nodeMap[channel.node]?.transform?.scale ?: Vector3d(1.0, 1.0, 1.0)
+
                     addScaleChannel(channel.node, channel.times.zip(channel.values).map {
                         AnimationKeyframe(it.first, (it.second as Vector3d) / base)
                     })
@@ -83,20 +79,20 @@ internal class GltfAnimator(
                 GltfChannelPath.weights -> error("Unsupported")
             }
         }
-    }.build()
+    }.debugBuild()
 
-    fun AnimationNodeBuilder.newNode(node: GltfTree.Node, transform: TRSTransformation) {
+    fun AnimationNodeBuilder.newNode(node: GltfTree.Node) {
         nodeMap[node.index] = node
+        withTransform(node.transform)
+
         node.children.forEach {
-            createChildren(it.index) { newNode(it, TRSTransformation.IDENTITY) }
-        }
-        if (node.children.isNotEmpty()) {
-            withTransform(node.transform)
+            createChildren(it.index) { newNode(it) }
         }
 
         val mesh = node.mesh ?: return
+
         withVertices(mesh.primitives.mapNotNull {
-            val group = it.toVertexGroup(node.transform, null) ?: return@mapNotNull null
+            val group = it.toVertexGroup(TRSTransformation.IDENTITY, null) ?: return@mapNotNull null
             group.copy(texture = locationToFile(it.material))
         })
     }

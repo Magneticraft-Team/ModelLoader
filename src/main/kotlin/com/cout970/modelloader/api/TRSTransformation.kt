@@ -1,10 +1,7 @@
 package com.cout970.modelloader.api
 
 import com.cout970.modelloader.*
-import com.cout970.modelloader.interpolated
 import com.cout970.modelloader.mutable.MutableTRSTransformation
-import com.cout970.modelloader.rotate
-import com.cout970.modelloader.toTRS
 import net.minecraft.util.Direction
 import net.minecraftforge.client.ForgeHooksClient
 import net.minecraftforge.common.model.ITransformation
@@ -31,7 +28,7 @@ data class TRSTransformation(
     val rotation: Quat4d get() = Quat4d(rotationX.toDouble(), rotationY.toDouble(), rotationZ.toDouble(), rotationW.toDouble())
     val scale: Vector3d get() = Vector3d(scaleX.toDouble(), scaleY.toDouble(), scaleZ.toDouble())
 
-    constructor(translation: Vector3d = Vector3d(), rotation: Quat4d = Quat4d(), scale: Vector3d = Vector3d(1.0, 1.0, 1.0)) : this(
+    constructor(translation: Vector3d = Vector3d(), rotation: Quat4d = Quat4d(0.0, 0.0, 0.0, 1.0), scale: Vector3d = Vector3d(1.0, 1.0, 1.0)) : this(
         translation.x.toFloat(), translation.y.toFloat(), translation.z.toFloat(),
         rotation.x.toFloat(), rotation.y.toFloat(), rotation.z.toFloat(), rotation.w.toFloat(),
         scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat()
@@ -53,31 +50,30 @@ data class TRSTransformation(
     ForgeHooksClient.multiplyCurrentGlMatrix(matrix)
      */
     override fun getMatrixVec(): Matrix4f {
-        val self = this
-        return Matrix4f().apply {
-            setIdentity()
+        val m = Matrix4f()
+        m.setIdentity()
 
-            // rotation
-            if (rotationW != 0f) {
-                this.setRotation(rotation.apply { inverse() })
-            }
-
-            // translation
-            m30 = self.translationX
-            m31 = self.translationY
-            m32 = self.translationZ
-
-            // scale
-            m00 *= self.scaleX
-            m01 *= self.scaleX
-            m02 *= self.scaleX
-            m10 *= self.scaleY
-            m11 *= self.scaleY
-            m12 *= self.scaleY
-            m20 *= self.scaleZ
-            m21 *= self.scaleZ
-            m22 *= self.scaleZ
+        // rotation
+        if (rotationW != 0f && !(rotationX == 0f && rotationY == 0f && rotationZ == 0f && rotationW == 1f)) {
+            m.setRotation(rotation.apply { inverse() })
         }
+        // translation
+        m.m30 = translationX
+        m.m31 = translationY
+        m.m32 = translationZ
+
+        // scale
+        m.m00 *= scaleX
+        m.m01 *= scaleX
+        m.m02 *= scaleX
+        m.m10 *= scaleY
+        m.m11 *= scaleY
+        m.m12 *= scaleY
+        m.m20 *= scaleZ
+        m.m21 *= scaleZ
+        m.m22 *= scaleZ
+
+        return m
     }
 
     /**
@@ -150,8 +146,8 @@ data class TRSTransformation(
      * Method required by ITransformation, does nothing
      */
     override fun rotate(facing: Direction, vertexIndex: Int): Int = vertexIndex
-    
-    companion object{
-        val IDENTITY: TRSTransformation = TRSTransformation() 
+
+    companion object {
+        val IDENTITY: TRSTransformation = TRSTransformation()
     }
 }

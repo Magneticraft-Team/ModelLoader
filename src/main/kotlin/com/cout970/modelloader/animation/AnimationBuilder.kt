@@ -55,10 +55,38 @@ class AnimationBuilder : IAnimationBuilder {
         return this
     }
 
+    /**
+     * Creates an optimized animated model with the minimun amount of nodes needed to perform the animation
+     */
     fun build(): AnimatedModel {
-        val animationPoints = channels.map { it.index }.toSet()
-        val optimized = AnimationOptimizer.optimize(rootNodes, animationPoints)
-        return AnimatedModel(optimized, channels)
+        val specialNodes = mutableSetOf<Int>()
+
+        // Nodes added to be accesibles in the animation
+        getSpecialNodes(rootNodes, specialNodes)
+
+        // Nodes that need to change in the animation
+        channels.forEach { specialNodes += it.index }
+
+        val optimized = AnimationOptimizer.optimize(rootNodes, specialNodes)
+        return AnimatedModel(optimized, channels.toList())
+    }
+
+    private fun getSpecialNodes(nodes: List<AnimationNodeBuilder>, result: MutableSet<Int>) {
+        for (node in nodes) {
+            if (node.vertices.isEmpty() && node.children.isEmpty()) {
+                result += node.id
+            } else {
+                getSpecialNodes(node.children, result)
+            }
+        }
+    }
+
+    /**
+     * Creates an unoptimized version of the animated model, usefull to detect animation errors
+     */
+    fun debugBuild(): AnimatedModel {
+        val optimized = AnimationOptimizer.unoptimized(rootNodes)
+        return AnimatedModel(optimized, channels.toList())
     }
 
     override fun add(node: AnimationNodeBuilder) {

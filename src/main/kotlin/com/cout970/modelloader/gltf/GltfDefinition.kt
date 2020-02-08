@@ -86,7 +86,7 @@ data class GltfNode (
     val skin: Int?              = null,                 // The index of the skin referenced by this node.
     val matrix: Matrix4d?       = null,                 // A floating-point 4x4 transformation matrix stored in column-major order.
     val mesh: Int?              = null,                 // The index of the mesh in this node.
-    val rotation: Quat4d?       = Quat4d(),             // The node's unit quaternion rotation in the order (x, y, z, w), where w is the scalar.
+    val rotation: Quat4d?       = Quat4d(0.0, 0.0, 0.0, 1.0), // The node's unit quaternion rotation in the order (x, y, z, w), where w is the scalar.
     val scale: Vector3d?        = Vector3d(1.0,1.0,1.0),   // The node's non-uniform scale, given as the scaling factors along the x, y, and z axes.
     val translation: Vector3d?  = Vector3d(),           // The node's translation along the x, y, and z axes.
     val weights: List<Double>   = emptyList(),          // The weights of the instantiated Morph Target. Number of elements must match number of Morph Targets of used mesh.

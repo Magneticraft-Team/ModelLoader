@@ -1,11 +1,8 @@
 package com.cout970.modelloader.animation
 
+import com.cout970.modelloader.*
 import com.cout970.modelloader.api.IRenderCache
 import com.cout970.modelloader.api.TRSTransformation
-import com.cout970.modelloader.asQuaternion
-import com.cout970.modelloader.interpolated
-import com.cout970.modelloader.plus
-import com.cout970.modelloader.times
 import com.mojang.blaze3d.platform.GlStateManager
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
@@ -73,6 +70,24 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         channels.mapNotNull { channel -> channel.keyframes.map { it.time }.max() }.max() ?: 1f
     }
 
+    init {
+        for (channel in channels) {
+            val value = channel.keyframes.first().value
+
+            when (channel.type) {
+                AnimationChannelType.TRANSLATION -> {
+                    check(value is Vector3d) { "Error: translate animation channel must use Vector3d for values, ${value::class.java} found" }
+                }
+                AnimationChannelType.ROTATION -> {
+                    check(value is Vector4d) { "Error: rotate animation channel must use Vector4d for values, ${value::class.java} found" }
+                }
+                AnimationChannelType.SCALE -> {
+                    check(value is Vector3d) { "Error: scale animation channel must use Vector3d for values, ${value::class.java} found" }
+                }
+            }
+        }
+    }
+
     /**
      * Renders the model with an specified animation time
      * Time is in seconds, to use ticks just divide by 20
@@ -98,6 +113,35 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         node.cache.render()
         node.children.forEach { renderNode(it, time) }
         GlStateManager.popMatrix()
+    }
+
+    /**
+     * Gets the acumulated transformations to a node
+     *
+     * This is usefull to get the in-world position of a part of the model,
+     * for example, to render an item in the arm of an inserter
+     */
+    fun getNodeTransform(id: Int, time: Float): TRSTransformation {
+        val path = findNode(id, rootNodes) ?: return TRSTransformation.IDENTITY
+        var transformation = TRSTransformation.IDENTITY
+
+        for (node in path) {
+            transformation = getTransform(node, time) + transformation
+        }
+
+        return transformation
+    }
+
+    private fun findNode(id: Int, options: List<AnimatedNode>): List<AnimatedNode>? {
+        for (option in options) {
+            if (option.index == id) return listOf(option)
+            val childPath = findNode(id, option.children)
+
+            if (childPath != null) {
+                return listOf(option) + childPath
+            }
+        }
+        return null
     }
 
     /**
@@ -132,8 +176,6 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         val translation = channels
             .filter { it.type == AnimationChannelType.TRANSLATION }
             .fold<AnimationChannel, Vector3d?>(null) { acc, channel ->
-                val value = channel.keyframes.first().value
-                check(value is Vector3d) { "Error: translate animation channel must use Vector3d for values, ${value::class.java} found" }
                 @Suppress("UNCHECKED_CAST")
                 val keyframes = channel.keyframes as List<AnimationKeyframe<Vector3d>>
                 val (prev, next) = getPrevAndNext(time, keyframes)
@@ -145,8 +187,6 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         val rotation = channels
             .filter { it.type == AnimationChannelType.ROTATION }
             .fold<AnimationChannel, Quat4d?>(null) { acc, channel ->
-                val value = channel.keyframes.first().value
-                check(value is Vector4d) { "Error: rotate animation channel must use Vector4d for values, ${value::class.java} found" }
                 @Suppress("UNCHECKED_CAST")
                 val keyframes = channel.keyframes as List<AnimationKeyframe<Vector4d>>
                 val (prev, next) = getPrevAndNext(time, keyframes)
@@ -158,8 +198,6 @@ class AnimatedModel(val rootNodes: List<AnimatedNode>, val channels: List<Animat
         val scale = channels
             .filter { it.type == AnimationChannelType.SCALE }
             .fold<AnimationChannel, Vector3d?>(null) { acc, channel ->
-                val value = channel.keyframes.first().value
-                check(value is Vector3d) { "Error: scale animation channel must use Vector3d for values, ${value::class.java} found" }
                 @Suppress("UNCHECKED_CAST")
                 val keyframes = channel.keyframes as List<AnimationKeyframe<Vector3d>>
                 val (prev, next) = getPrevAndNext(time, keyframes)

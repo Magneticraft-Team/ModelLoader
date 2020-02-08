@@ -1,9 +1,6 @@
 package com.cout970.modelloader.animation
 
-import com.cout970.modelloader.api.TRSTransformation
-import com.cout970.modelloader.api.ModelCache
-import com.cout970.modelloader.api.ModelGroupCache
-import com.cout970.modelloader.api.TextureModelCache
+import com.cout970.modelloader.api.*
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
@@ -17,6 +14,23 @@ object AnimationOptimizer {
         return nodes
             .map { compactNode(it, animationPoints) }
             .map { it.toAnimated() }
+    }
+
+    fun unoptimized(nodes: List<AnimationNodeBuilder>): List<AnimatedNode>{
+        return nodes.map { unoptimizedNode(it) }
+    }
+
+    private fun unoptimizedNode(it: AnimationNodeBuilder): AnimatedNode {
+        val caches = it.vertices.map { (tex, vertex) ->
+            TextureModelCache(tex, ModelCache { renderVertex(vertex) })
+        }
+
+        return AnimatedNode(
+            index = it.id,
+            transform = it.transform.toImmutable(),
+            children = it.children.map { unoptimizedNode(it) },
+            cache = if (caches.size == 1) caches.first() else ModelGroupCache(*caches.toTypedArray())
+        )
     }
 
     private data class CompactNode(

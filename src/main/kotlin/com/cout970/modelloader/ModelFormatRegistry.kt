@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.resources.IResourceManager
 import net.minecraft.util.ResourceLocation
+import org.apache.logging.log4j.Level
 import java.io.FileNotFoundException
 import java.util.function.Function
 
@@ -38,6 +39,8 @@ object ModelFormatRegistry {
             ModelLoaderMod.logger.error("Unable to load model with $extension extension: $modelLocation")
             return NullUnbakedModel
         }
+
+        ModelLoaderMod.logger.debug("Loading model $modelLocation")
 
         return try {
             handler.loadModel(resourceManager, modelLocation)

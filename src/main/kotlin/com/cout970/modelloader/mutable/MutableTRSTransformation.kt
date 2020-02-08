@@ -222,9 +222,9 @@ class MutableTRSTransformation(
      */
     fun toImmutable(): TRSTransformation {
         return TRSTransformation(
-            translation = Vector3d(translation),
-            rotation = Quat4d(rotation),
-            scale = Vector3d(scale)
+            translation = translation,
+            rotation = rotation,
+            scale = scale
         )
     }
 

@@ -159,7 +159,7 @@ object GltfTree {
 
         val transform = TRSTransformation(
             translation = node.translation ?: Vector3d(),
-            rotation = node.rotation ?: Quat4d(),
+            rotation = node.rotation ?: Quat4d(0.0, 0.0, 0.0, 1.0),
             scale = node.scale ?: Vector3d(1.0, 1.0, 1.0)
         )
 
@@ -178,7 +178,7 @@ object GltfTree {
             path = GltfChannelPath.valueOf(channel.target.path),
             times = timeValues,
             interpolation = sampler.interpolation,
-            values = accessors[sampler.output].data
+            values = accessors[sampler.output].data.toList()
         )
     }
 
