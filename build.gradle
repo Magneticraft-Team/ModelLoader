@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: "kotlin"
 
-version = '2.0.1'
+version = '2.0.2'
 group = 'com.cout970.modelloader'
 archivesBaseName = 'modelloader'
 
@@ -92,7 +92,7 @@ sourceSets {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.1.96'
+    minecraft 'net.minecraftforge:forge:1.14.4-28.2.0'
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
